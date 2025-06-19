@@ -1,5 +1,6 @@
 use aiken/collection/dict.{Dict}
 use aiken/crypto.{VerificationKeyHash}
+use cardano/address.{Address}
 use types/moment.{Moment}
 
 // utils
@@ -26,10 +27,10 @@ pub type Vote {
 }
 
 pub type ProposalAction {
-  ValidatorAdd
-  ValidatorRemove
-  FeeUpdate
-  FeeAddressUpdate
+  ValidatorAdd(VerificationKeyHash)
+  ValidatorRemove(VerificationKeyHash)
+  FeeUpdate(Int)
+  FeeAddressUpdate(Address)
 }
 
 pub type Votes =
