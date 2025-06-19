@@ -100,6 +100,10 @@ validator dao(_config_nft: PolicyId) {
             }
 
           // Proposal execution is not yet implemented.
+          // finds address of the configDatum holder using config_nft
+          // finds the script output using above address
+          // match the datum from config_nft and the new datum that is sent to configDatum
+          // the match is done based on the ProposalAction. if its `feesupdate` then we update config_nftDatum's fees field and compare it to the OutputConfigDatum
           ExecuteProposal { .. } -> fail @"Execute not implemented"
 
           // 1. The proposal ID must match.
