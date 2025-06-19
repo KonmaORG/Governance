@@ -1,7 +1,14 @@
 use aiken/collection/dict.{Dict}
 use aiken/crypto.{VerificationKeyHash}
+use types/moment.{Moment}
 
 // utils
+pub type ProposalState {
+  InProgess
+  Executed
+  Rejected
+}
+
 pub type Voter =
   VerificationKeyHash
 
@@ -43,5 +50,6 @@ pub type GovernanceDatum {
   proposal_action: ProposalAction,
   votes: Votes,
   votes_count: VotesCount,
-  deadline: Int,
+  deadline: Moment,
+  proposal_state: ProposalState,
 }

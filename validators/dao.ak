@@ -6,9 +6,10 @@ use cardano/transaction.{
   InlineDatum, OutputReference, Transaction, find_input, find_script_outputs,
 }
 use types.{
-  Abstain, ExecuteProposal, GovernanceDatum, GovernanceRedeemer, No, Pending,
-  RejectProposal, SubmitProposal, VoteProposal, Yes,
+  Abstain, ExecuteProposal, GovernanceDatum, GovernanceRedeemer, InProgess, No,
+  Pending, RejectProposal, SubmitProposal, VoteProposal, Yes,
 }
+use types/moment
 
 validator dao(config_nft: PolicyId) {
   spend(
@@ -40,6 +41,7 @@ validator dao(config_nft: PolicyId) {
             votes,
             votes_count,
             deadline,
+            proposal_state,
           } = data
           GovernanceDatum {
             proposal_id,
@@ -48,17 +50,23 @@ validator dao(config_nft: PolicyId) {
             votes,
             votes_count,
             deadline,
+            proposal_state,
           }
         }
         // when condition on Redeemer Action
         when redeemer is {
-          SubmitProposal { proposal_id, submitted_by } ->
-            fail @"Invalid Redeemer"
+          SubmitProposal { .. } -> fail @"Invalid Redeemer"
           VoteProposal { proposal_id, voter, vote } ->
+            // proposal_id should match
             // voter is in datum.votes && datum.votes.vote=Pending
             // output.datum.votes is == vote
             // votes_count.[vote] = +1
+            // should be before deadline
+            // proposal_state should be InProgess
             and {
+              datum.proposal_state == InProgess,
+              moment.is_contained(datum.deadline, tx.validity_range),
+              proposal_id == self_output_datum.proposal_id,
               dict.has_key(datum.votes, voter),
               Some(Pending) == dict.get(datum.votes, voter),
               Some(vote) == dict.get(self_output_datum.votes, voter),
