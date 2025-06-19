@@ -1,65 +1,46 @@
-# dao
+# DAO Validator
 
-Write validators in the `validators` folder, and supporting functions in the `lib` folder using `.ak` as a file extension.
+This project includes a basic DAO (Decentralized Autonomous Organization) validator that manages the lifecycle of on-chain proposals.
 
-```aiken
-validator my_first_validator {
-  spend(_datum: Option<Data>, _redeemer: Data, _output_reference: Data, _context: Data) {
-    True
-  }
-}
-```
+### Core Concepts
 
-## Building
+The DAO is built around the idea of proposals that can be voted on by eligible members. Each proposal is represented by a UTxO at the validator address, containing a `GovernanceDatum` that holds its state.
 
-```sh
-aiken build
-```
+- **Proposals**: A proposal includes an ID, the proposer's identity, a specific action to be executed (e.g., updating a fee), a list of eligible voters, vote counts, a voting deadline, and its current state.
+- **Voting**: Eligible members can cast their vote (`Yes`, `No`, or `Abstain`) on a proposal as long as it is within the deadline and the proposal is in the `InProgress` state.
+- **Lifecycle**: A proposal starts as `InProgress`. After the deadline, it can either be `Executed` if it passes (Note: execution logic is not yet implemented) or `Rejected` if it fails.
 
-## Configuring
+### Types (`lib/types.ak`)
 
-**aiken.toml**
-```toml
-[config.default]
-network_id = 41
-```
+The core data structures for the DAO are defined in `lib/types.ak`:
 
-Or, alternatively, write conditional environment modules under `env`.
+- **`GovernanceDatum`**: The main state record for a proposal. It contains:
+  - `proposal_id: ByteArray`
+  - `submitted_by: Voter`
+  - `proposal_action: ProposalAction`
+  - `votes: Dict<Voter, Vote>`
+  - `votes_count: VotesCount`
+  - `deadline: Moment`
+  - `proposal_state: ProposalState`
+- **`GovernanceRedeemer`**: Defines the actions that can be taken on a proposal:
+  - `SubmitProposal`: To create a new proposal (handled by a minting policy, not the spend validator).
+  - `VoteProposal`: To cast a vote.
+  - `ExecuteProposal`: To execute a passed proposal.
+  - `RejectProposal`: To formally reject a failed proposal.
+- **`ProposalAction`**: Defines what the proposal aims to achieve, e.g., `FeeUpdate(Int)`.
+- **`Vote`**: An enum for vote types: `Yes`, `No`, `Abstain`, and `Pending` (for voters who haven't voted yet).
+- **`ProposalState`**: An enum for the proposal's status: `InProgess`, `Executed`, `Rejected`.
 
-## Testing
+### Validator Logic (`validators/dao.ak`)
 
-You can write tests in any module using the `test` keyword. For example:
+The `dao` validator's `spend` logic enforces the rules for interacting with a proposal UTxO.
 
-```aiken
-use config
-
-test foo() {
-  config.network_id + 1 == 42
-}
-```
-
-To run all tests, simply do:
-
-```sh
-aiken check
-```
-
-To run only tests matching the string `foo`, do:
-
-```sh
-aiken check -m foo
-```
-
-## Documentation
-
-If you're writing a library, you might want to generate an HTML documentation for it.
-
-Use:
-
-```sh
-aiken docs
-```
-
-## Resources
-
-Find more on the [Aiken's user manual](https://aiken-lang.org).
+- **`VoteProposal`**:
+  - Checks that the proposal is `InProgress` and the vote is cast before the `deadline`.
+  - Verifies that the voter is eligible and has not already voted.
+  - Ensures the vote count and the voter's vote are correctly updated in the new output datum.
+- **`RejectProposal`**:
+  - Checks that the proposal is `InProgress` and the `deadline` has passed.
+  - Verifies that the number of `No` votes is greater than the number of `Yes` votes.
+  - Ensures the proposal's state is updated to `Rejected` in the new output datum.
+- **`ExecuteProposal`**: This action is defined but not yet implemented in the validator.
