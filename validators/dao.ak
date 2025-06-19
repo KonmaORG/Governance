@@ -7,7 +7,7 @@ use cardano/transaction.{
 }
 use types.{
   Abstain, ExecuteProposal, GovernanceDatum, GovernanceRedeemer, InProgess, No,
-  Pending, RejectProposal, SubmitProposal, VoteProposal, Yes,
+  Pending, RejectProposal, Rejected, SubmitProposal, VoteProposal, Yes,
 }
 use types/moment
 
@@ -63,13 +63,15 @@ validator dao(config_nft: PolicyId) {
             // votes_count.[vote] = +1
             // should be before deadline
             // proposal_state should be InProgess
+            // output datum state should be Inprogress
             and {
+              proposal_id == self_output_datum.proposal_id,
               datum.proposal_state == InProgess,
               moment.is_contained(datum.deadline, tx.validity_range),
-              proposal_id == self_output_datum.proposal_id,
               dict.has_key(datum.votes, voter),
               Some(Pending) == dict.get(datum.votes, voter),
               Some(vote) == dict.get(self_output_datum.votes, voter),
+              self_output_datum.proposal_state == InProgess,
               when vote is {
                 Yes ->
                   datum.votes_count.yes + 1 == self_output_datum.votes_count.yes
@@ -82,9 +84,22 @@ validator dao(config_nft: PolicyId) {
             }
 
           ExecuteProposal { proposal_id } -> fail @"execute not implemented"
-          RejectProposal { proposal_id } -> fail @"reject not implemented"
+          RejectProposal { proposal_id } ->
+            // proposal_id should match
+            // datum should be inProgress
+            // is after deadline
+            // votes_no > votes_yes
+            // output datum state should be rejected
+            and {
+              proposal_id == self_output_datum.proposal_id,
+              datum.proposal_state == InProgess,
+              moment.is_after(datum.deadline, tx.validity_range),
+              datum.votes_count.no > datum.votes_count.yes,
+              self_output_datum.proposal_state == Rejected,
+            }
         }
       }
+
       None -> fail @"Invalid Datum"
     }
   }
