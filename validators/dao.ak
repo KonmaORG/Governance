@@ -1,7 +1,6 @@
 use aiken/collection/dict
 use cardano/address.{Script}
 use cardano/assets.{PolicyId}
-// TODO: Allow only token holders to create and vote on proposals.
 use cardano/transaction.{
   InlineDatum, OutputReference, Transaction, find_input, find_script_outputs,
 }
@@ -20,16 +19,36 @@ validator dao(_config_nft: PolicyId) {
   /// The `spend` validator logic is triggered when a UTxO locked by this script is spent.
   /// It handles actions like voting on proposals and rejecting failed proposals.
   spend(
-    datum: Option<GovernanceDatum>,
+    datum: Option<Data>,
     redeemer: GovernanceRedeemer,
     oref: OutputReference,
     tx: Transaction,
   ) {
     when datum is {
-      Some(datum) -> {
+      Some(data) -> {
+        let datum = {
+          expect GovernanceDatum {
+            proposal_id,
+            submitted_by,
+            proposal_action,
+            votes,
+            votes_count,
+            deadline,
+            proposal_state,
+          } = data
+          GovernanceDatum {
+            proposal_id,
+            submitted_by,
+            proposal_action,
+            votes,
+            votes_count,
+            deadline,
+            proposal_state,
+          }
+        }
+
         // The script requires that the proposal UTxO be spent and a new one created
         // in the same transaction, carrying forward the updated state.
-
         // Find the script's own hash to locate the continuing output.
         let self_hash = {
           expect Some(input) = find_input(tx.inputs, oref)
@@ -120,8 +139,7 @@ validator dao(_config_nft: PolicyId) {
             }
         }
       }
-
-      None -> fail @"Invalid Datum: GovernanceDatum is required"
+      None -> fail @"Datum is required"
     }
   }
 
