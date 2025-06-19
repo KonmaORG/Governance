@@ -1,7 +1,7 @@
 use aiken/collection/dict
 use cardano/address.{Script}
 use cardano/assets.{PolicyId}
-// TODO: allow on token holder to create and vote proposal
+// TODO: Allow only token holders to create and vote on proposals.
 use cardano/transaction.{
   InlineDatum, OutputReference, Transaction, find_input, find_script_outputs,
 }
@@ -11,7 +11,14 @@ use types.{
 }
 use types/moment
 
-validator dao(config_nft: PolicyId) {
+/// A validator for managing DAO proposals.
+/// This script controls the lifecycle of a proposal, including voting and resolution.
+///
+/// # Parameters
+/// * `config_nft` - The PolicyId of the configuration NFT. Note: This is not currently used in the spend validator.
+validator dao(_config_nft: PolicyId) {
+  /// The `spend` validator logic is triggered when a UTxO locked by this script is spent.
+  /// It handles actions like voting on proposals and rejecting failed proposals.
   spend(
     datum: Option<GovernanceDatum>,
     redeemer: GovernanceRedeemer,
@@ -20,18 +27,23 @@ validator dao(config_nft: PolicyId) {
   ) {
     when datum is {
       Some(datum) -> {
-        // finding Script Hash
-        expect self_hash = {
+        // The script requires that the proposal UTxO be spent and a new one created
+        // in the same transaction, carrying forward the updated state.
+
+        // Find the script's own hash to locate the continuing output.
+        let self_hash = {
           expect Some(input) = find_input(tx.inputs, oref)
           expect Script(script_hash) = input.output.address.payment_credential
           script_hash
         }
 
-        // finding Script Outputs
+        // Expect exactly one output to be sent back to the script address.
         let self_output = {
           expect [output] = find_script_outputs(tx.outputs, self_hash)
           output
         }
+
+        // Decode the datum from the continuing output.
         let self_output_datum = {
           expect InlineDatum(data) = self_output.datum
           expect GovernanceDatum {
@@ -53,18 +65,22 @@ validator dao(config_nft: PolicyId) {
             proposal_state,
           }
         }
-        // when condition on Redeemer Action
+
+        // Handle actions based on the provided redeemer.
         when redeemer is {
-          SubmitProposal { .. } -> fail @"Invalid Redeemer"
-          VoteProposal { proposal_id, voter, vote } ->
-            // proposal_id should match
-            // voter is in datum.votes && datum.votes.vote=Pending
-            // output.datum.votes is == vote
-            // votes_count.[vote] = +1
-            // should be before deadline
-            // proposal_state should be InProgess
-            // output datum state should be Inprogress
-            and {
+          // Proposal submission is not handled by this spend validator.
+          // It's handled by a minting policy that creates the initial proposal UTxO.
+          SubmitProposal { .. } ->
+            fail @"Invalid Redeemer: Proposal submission not allowed"
+          // 1. The proposal ID must remain unchanged.
+          // 2. The proposal must be in the 'InProgress' state to allow voting.
+          // 3. The vote must be cast before the proposal's deadline.
+          // 4. The voter must be in the list of eligible voters.
+          // 5. The voter must not have already voted (their status must be 'Pending').
+          // 6. The output datum must correctly reflect the new vote cast by the voter.
+          // 7. The proposal state must remain 'InProgress' after the vote.
+          // 8. The relevant vote count must be incremented by exactly one.
+          VoteProposal { proposal_id, voter, vote } -> and {
               proposal_id == self_output_datum.proposal_id,
               datum.proposal_state == InProgess,
               moment.is_contained(datum.deadline, tx.validity_range),
@@ -79,18 +95,19 @@ validator dao(config_nft: PolicyId) {
                   datum.votes_count.no + 1 == self_output_datum.votes_count.no
                 Abstain ->
                   datum.votes_count.abstain + 1 == self_output_datum.votes_count.abstain
-                _ -> fail @"Invalid Vote"
+                _ -> fail @"Invalid Vote type"
               },
             }
 
-          ExecuteProposal { proposal_id } -> fail @"execute not implemented"
-          RejectProposal { proposal_id } ->
-            // proposal_id should match
-            // datum should be inProgress
-            // is after deadline
-            // votes_no > votes_yes
-            // output datum state should be rejected
-            and {
+          // Proposal execution is not yet implemented.
+          ExecuteProposal { .. } -> fail @"Execute not implemented"
+
+          // 1. The proposal ID must match.
+          // 2. The proposal must currently be 'InProgress'.
+          // 3. The transaction must be after the voting deadline.
+          // 4. The number of 'No' votes must be strictly greater than 'Yes' votes.
+          // 5. The final state of the proposal in the output datum must be 'Rejected'.
+          RejectProposal { proposal_id } -> and {
               proposal_id == self_output_datum.proposal_id,
               datum.proposal_state == InProgess,
               moment.is_after(datum.deadline, tx.validity_range),
@@ -100,11 +117,11 @@ validator dao(config_nft: PolicyId) {
         }
       }
 
-      None -> fail @"Invalid Datum"
+      None -> fail @"Invalid Datum: GovernanceDatum is required"
     }
   }
 
   else(_) {
-    fail
+    fail @"Invalid transaction type"
   }
 }
