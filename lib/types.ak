@@ -26,6 +26,7 @@ pub type Vote {
   Pending
 }
 
+// Proposal Action with Values needed to be updated
 pub type ProposalAction {
   ValidatorAdd(VerificationKeyHash)
   ValidatorRemove(VerificationKeyHash)
