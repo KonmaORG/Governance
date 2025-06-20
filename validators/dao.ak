@@ -146,10 +146,13 @@ validator dao(config_nft: PolicyId) {
                   multisig_validator_group: multisig_validator_group_new,
                 } == new_config_datum
               }
-              FeeAmountUpdate(_) ->
-                fail @"ExecuteProposal action not implemented"
-              FeeAddressUpdate(_) ->
-                fail @"ExecuteProposal action not implemented"
+              FeeAmountUpdate(updated_fee) ->
+                ConfigDatum { ..current_config_datum, fees_amount: updated_fee } == new_config_datum
+              FeeAddressUpdate(updated_addr) ->
+                ConfigDatum {
+                  ..current_config_datum,
+                  fees_address: updated_addr,
+                } == new_config_datum
             }
           }
 
