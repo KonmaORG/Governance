@@ -174,6 +174,10 @@ validator dao(config_nft: PolicyId) {
     }
   }
 
+  mint(_redeemer: Data, _oref: OutputReference, _tx: Transaction) {
+    fail @"Minting not implemented yet"
+  }
+
   else(_) {
     fail @"Invalid transaction type"
   }
