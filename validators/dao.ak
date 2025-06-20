@@ -89,18 +89,17 @@ validator dao(config_nft: PolicyId) {
             }
 
           // Proposal execution is not yet implemented.
-          // finds address of the configDatum holder using config_nft
-          // finds the script output using above address
-          // match the datum from config_nft and the new datum that is sent to configDatum
-          // the match is done based on the ProposalAction. if its `feesupdate` then we update config_nftDatum's fees field and compare it to the OutputConfigDatum
-          // 1. The proposal ID must match.
-          // 2. The proposal must currently be 'InProgress'.
-          // 3. The transaction must be after the voting deadline.
-          // 4. The number of 'Yes' votes must be strictly greater than 'No' votes.
-          // 5. The final state of the proposal in the output datum must be 'Executed'.
+          // finds configDatum using config_nft
+          // finds the output_configDatum using config_nft
+          // match's the configDatum and the output_configDatum
+          // the match is done based on the ProposalAction. if its `feesupdate` then we update configDatum's fees field and compare it to the output_configDatum
           ExecuteProposal { proposal_id } -> {
-            // above 5 Conditions checking:
             expect and {
+                // 1. The proposal ID must match.
+                // 2. The proposal must currently be 'InProgress'.
+                // 3. The transaction must be after the voting deadline.
+                // 4. The number of 'Yes' votes must be strictly greater than 'No' votes.
+                // 5. The final state of the proposal in the output datum must be 'Executed'.
                 proposal_id == self_output_datum.proposal_id,
                 datum.proposal_state == InProgess,
                 moment.is_after(datum.deadline, tx.validity_range),
