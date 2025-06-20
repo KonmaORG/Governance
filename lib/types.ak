@@ -1,6 +1,5 @@
 use aiken/collection/dict.{Dict}
 use aiken/crypto.{VerificationKeyHash}
-use cardano/address.{Address}
 use cardano/assets.{AssetName, PolicyId}
 use types/moment.{Moment}
 use types/wallet.{Wallet}
@@ -29,11 +28,12 @@ pub type Vote {
 }
 
 // Proposal Action with Values needed to be updated
+// possible action // atleast/Multisig.required
 pub type ProposalAction {
   ValidatorAdd(VerificationKeyHash)
   ValidatorRemove(VerificationKeyHash)
   FeeAmountUpdate(Int)
-  FeeAddressUpdate(Address)
+  FeeAddressUpdate(Wallet)
 }
 
 pub type Votes =
