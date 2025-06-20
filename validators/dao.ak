@@ -59,7 +59,7 @@ validator dao(config_nft: PolicyId) {
         when redeemer is {
           // Proposal submission is not handled by this spend validator.
           // It's handled by a minting policy that creates the initial proposal UTxO.
-          SubmitProposal { .. } ->
+          SubmitProposal ->
             fail @"Invalid Redeemer: Proposal submission not allowed"
           // 1. The proposal ID must remain unchanged.
           // 2. The proposal must be in the 'InProgress' state to allow voting.
@@ -176,7 +176,7 @@ validator dao(config_nft: PolicyId) {
 
   mint(redeemer: GovernanceRedeemer, _oref: OutputReference, _tx: Transaction) {
     when redeemer is {
-      SubmitProposal { proposal_id, submitted_by } -> fail @"Not implemented"
+      SubmitProposal -> fail @"Not implemented"
       _ -> fail @"Invalid Redeemer: only SubmitProposal is allowed in minting"
     }
   }
