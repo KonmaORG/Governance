@@ -174,9 +174,17 @@ validator dao(config_nft: PolicyId) {
     }
   }
 
-  mint(redeemer: GovernanceRedeemer, _oref: OutputReference, _tx: Transaction) {
+  mint(redeemer: GovernanceRedeemer, _policy_id: PolicyId, _tx: Transaction) {
     when redeemer is {
-      SubmitProposal -> fail @"Not implemented"
+      SubmitProposal ->
+        // output datum must be a GovernanceDatum
+        // must be going to a script address
+        // must be signedby the submitted_by
+        //---
+        // find output using policy_id
+        // find the output datum and confirm it is a GovernanceDatum
+        // find the output script address and match with policy_id
+        True
       _ -> fail @"Invalid Redeemer: only SubmitProposal is allowed in minting"
     }
   }
