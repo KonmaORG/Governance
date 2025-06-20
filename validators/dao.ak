@@ -9,6 +9,7 @@ use types.{
   Pending, RejectProposal, Rejected, SubmitProposal, VoteProposal, Yes,
 }
 use types/moment
+use utils
 
 /// A validator for managing DAO proposals.
 /// This script controls the lifecycle of a proposal, including voting and resolution.
@@ -26,26 +27,7 @@ validator dao(_config_nft: PolicyId) {
   ) {
     when datum is {
       Some(data) -> {
-        let datum = {
-          expect GovernanceDatum {
-            proposal_id,
-            submitted_by,
-            proposal_action,
-            votes,
-            votes_count,
-            deadline,
-            proposal_state,
-          } = data
-          GovernanceDatum {
-            proposal_id,
-            submitted_by,
-            proposal_action,
-            votes,
-            votes_count,
-            deadline,
-            proposal_state,
-          }
-        }
+        let datum = utils.governance_datum_from_data(data)
 
         // The script requires that the proposal UTxO be spent and a new one created
         // in the same transaction, carrying forward the updated state.
@@ -65,24 +47,7 @@ validator dao(_config_nft: PolicyId) {
         // Decode the datum from the continuing output.
         let self_output_datum = {
           expect InlineDatum(data) = self_output.datum
-          expect GovernanceDatum {
-            proposal_id,
-            submitted_by,
-            proposal_action,
-            votes,
-            votes_count,
-            deadline,
-            proposal_state,
-          } = data
-          GovernanceDatum {
-            proposal_id,
-            submitted_by,
-            proposal_action,
-            votes,
-            votes_count,
-            deadline,
-            proposal_state,
-          }
+          utils.governance_datum_from_data(data)
         }
 
         // Handle actions based on the provided redeemer.
