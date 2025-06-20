@@ -174,8 +174,11 @@ validator dao(config_nft: PolicyId) {
     }
   }
 
-  mint(_redeemer: Data, _oref: OutputReference, _tx: Transaction) {
-    fail @"Minting not implemented yet"
+  mint(redeemer: GovernanceRedeemer, _oref: OutputReference, _tx: Transaction) {
+    when redeemer is {
+      SubmitProposal { proposal_id, submitted_by } -> fail @"Not implemented"
+      _ -> fail @"Invalid Redeemer: only SubmitProposal is allowed in minting"
+    }
   }
 
   else(_) {
