@@ -41,7 +41,7 @@ pub type Votes =
 
 // redeemer
 pub type GovernanceRedeemer {
-  SubmitProposal
+  SubmitProposal { proposal_id: ByteArray }
   VoteProposal { proposal_id: ByteArray, voter: Voter, vote: Vote }
   ExecuteProposal { proposal_id: ByteArray }
   RejectProposal { proposal_id: ByteArray }

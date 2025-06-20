@@ -69,3 +69,19 @@ pub fn output_ref_datum_by_nft(
     fail @"Datum Type did not Match ConfigDatum On Input"
   }
 }
+
+pub fn output_by_nft(
+  outputs: List<Output>,
+  pid: PolicyId,
+  tkn: AssetName,
+) -> Output {
+  when outputs is {
+    [output, ..rest] ->
+      if value.prove_exact_nft(output.value, pid, tkn) {
+        output
+      } else {
+        output_by_nft(rest, pid, tkn)
+      }
+    [] -> fail @"No Output Found In Outputs"
+  }
+}
