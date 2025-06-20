@@ -10,12 +10,11 @@ use types.{ConfigDatum}
 validator config_datum_holder {
   spend(
     datum: Option<ConfigDatum>,
-    proposal_id redeemer: ByteArray,
+    redeemer proposal_id: ByteArray,
     _oref,
-    tx: Transaction,
+    _tx: Transaction,
   ) {
     expect Some(datum) = datum
-    let Transaction { extra_signatories, .. } = tx
     // This spend function enforces that the transaction also spends the UTXO from the DAO validator,
     // which is responsible for managing proposals and voting. this will ensure that any changes to the configuration
     // are made in the context of an approved proposal.
@@ -45,7 +44,8 @@ validator config_datum_holder {
     // 3. In this validator, find the transaction input that contains this NFT.
     //    This input must be from the DAO validator, allowing you to get the
     //    GovernanceDatum from it.
-    True
+    datum.categories == [proposal_id]
+    // added just to avoid the unused warning
   }
 
   else(_) {
