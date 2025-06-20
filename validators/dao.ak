@@ -59,7 +59,7 @@ validator dao(config_nft: PolicyId) {
         when redeemer is {
           // Proposal submission is not handled by this spend validator.
           // It's handled by a minting policy that creates the initial proposal UTxO.
-          SubmitProposal ->
+          SubmitProposal { .. } ->
             fail @"Invalid Redeemer: Proposal submission not allowed"
           // 1. The proposal ID must remain unchanged.
           // 2. The proposal must be in the 'InProgress' state to allow voting.
@@ -174,17 +174,27 @@ validator dao(config_nft: PolicyId) {
     }
   }
 
-  mint(redeemer: GovernanceRedeemer, _policy_id: PolicyId, _tx: Transaction) {
+  mint(redeemer: GovernanceRedeemer, policy_id: PolicyId, tx: Transaction) {
     when redeemer is {
-      SubmitProposal ->
+      SubmitProposal { proposal_id } -> {
         // output datum must be a GovernanceDatum
-        // must be going to a script address
         // must be signedby the submitted_by
-        //---
-        // find output using policy_id
-        // find the output datum and confirm it is a GovernanceDatum
-        // find the output script address and match with policy_id
-        True
+        // output datum proposal_id must match the proposal_id from redeemer
+        // output datum proposal_state must be InProgess
+        // output must be going to a script address
+
+        let output = utils.output_by_nft(tx.outputs, policy_id, proposal_id)
+        let datum = {
+          expect InlineDatum(data) = output.datum
+          utils.governance_datum_from_data(data)
+        }
+        and {
+          list.has(tx.extra_signatories, datum.submitted_by),
+          datum.proposal_id == proposal_id,
+          datum.proposal_state == InProgess,
+          output.address.payment_credential == Script(policy_id),
+        }
+      }
       _ -> fail @"Invalid Redeemer: only SubmitProposal is allowed in minting"
     }
   }
