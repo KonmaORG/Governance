@@ -1,22 +1,27 @@
 use aiken/collection/dict
+use aiken/collection/list
 use cardano/address.{Script}
 use cardano/assets.{PolicyId}
 use cardano/transaction.{
   InlineDatum, OutputReference, Transaction, find_input, find_script_outputs,
 }
 use types.{
-  Abstain, ExecuteProposal, GovernanceDatum, GovernanceRedeemer, InProgess, No,
-  Pending, RejectProposal, Rejected, SubmitProposal, VoteProposal, Yes,
+  Abstain, ConfigDatum, ExecuteProposal, Executed, FeeAddressUpdate,
+  FeeAmountUpdate, GovernanceDatum, GovernanceRedeemer, InProgess, Multisig, No,
+  Pending, RejectProposal, Rejected, SubmitProposal, ValidatorAdd,
+  ValidatorRemove, VoteProposal, Yes,
 }
 use types/moment
 use utils
+
+pub const identication_tkn = "KARBON_IDENTIFICATION"
 
 /// A validator for managing DAO proposals.
 /// This script controls the lifecycle of a proposal, including voting and resolution.
 ///
 /// # Parameters
 /// * `config_nft` - The PolicyId of the configuration NFT. Note: This is not currently used in the spend validator.
-validator dao(_config_nft: PolicyId) {
+validator dao(config_nft: PolicyId) {
   /// The `spend` validator logic is triggered when a UTxO locked by this script is spent.
   /// It handles actions like voting on proposals and rejecting failed proposals.
   spend(
@@ -88,7 +93,66 @@ validator dao(_config_nft: PolicyId) {
           // finds the script output using above address
           // match the datum from config_nft and the new datum that is sent to configDatum
           // the match is done based on the ProposalAction. if its `feesupdate` then we update config_nftDatum's fees field and compare it to the OutputConfigDatum
-          ExecuteProposal { .. } -> fail @"Execute not implemented"
+          // 1. The proposal ID must match.
+          // 2. The proposal must currently be 'InProgress'.
+          // 3. The transaction must be after the voting deadline.
+          // 4. The number of 'Yes' votes must be strictly greater than 'No' votes.
+          // 5. The final state of the proposal in the output datum must be 'Executed'.
+          ExecuteProposal { proposal_id } -> {
+            // above 5 Conditions checking:
+            expect and {
+                proposal_id == self_output_datum.proposal_id,
+                datum.proposal_state == InProgess,
+                moment.is_after(datum.deadline, tx.validity_range),
+                datum.votes_count.no > datum.votes_count.yes,
+                self_output_datum.proposal_state == Executed,
+              }
+            let current_config_datum =
+              utils.ref_datum_by_nft(tx.inputs, config_nft, identication_tkn)
+            let new_config_datum =
+              utils.output_ref_datum_by_nft(
+                tx.outputs,
+                config_nft,
+                identication_tkn,
+              )
+            when self_output_datum.proposal_action is {
+              // This action is not implemented yet.
+              ValidatorAdd(added_addr) -> {
+                let multisig_validator_group_new =
+                  Multisig {
+                    required: current_config_datum.multisig_validator_group.required,
+                    signers: [
+                      added_addr,
+                      ..current_config_datum.multisig_validator_group.signers
+                    ],
+                  }
+                // Comparing the configDatum with the new configDatum
+                ConfigDatum {
+                  ..current_config_datum,
+                  multisig_validator_group: multisig_validator_group_new,
+                } == new_config_datum
+              }
+              ValidatorRemove(removed_addr) -> {
+                let multisig_validator_group_new =
+                  Multisig {
+                    required: current_config_datum.multisig_validator_group.required,
+                    signers: list.delete(
+                      current_config_datum.multisig_validator_group.signers,
+                      removed_addr,
+                    ),
+                  }
+                // Comparing the configDatum with the new configDatum
+                ConfigDatum {
+                  ..current_config_datum,
+                  multisig_validator_group: multisig_validator_group_new,
+                } == new_config_datum
+              }
+              FeeAmountUpdate(_) ->
+                fail @"ExecuteProposal action not implemented"
+              FeeAddressUpdate(_) ->
+                fail @"ExecuteProposal action not implemented"
+            }
+          }
 
           // 1. The proposal ID must match.
           // 2. The proposal must currently be 'InProgress'.
