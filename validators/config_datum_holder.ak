@@ -1,8 +1,10 @@
 // This validator is responsible for safeguarding the central configuration datum of the protocol.
 // It ensures that any modifications to the configuration are authorized by a multi-signature group.
 
-use cardano/transaction.{Transaction}
-use types.{ConfigDatum}
+use cardano/transaction.{InlineDatum, Transaction}
+use types.{ConfigDatum, Executed, InProgess}
+use utils
+use validation/find
 
 /// The `config_datum_holder` validator locks the main `ConfigDatum` and the Identification NFT.
 /// Spending from this validator requires approval from a specified multi-signature group,
@@ -12,40 +14,40 @@ validator config_datum_holder {
     datum: Option<ConfigDatum>,
     redeemer proposal_id: ByteArray,
     _oref,
-    _tx: Transaction,
+    tx: Transaction,
   ) {
-    expect Some(datum) = datum
-    // This spend function enforces that the transaction also spends the UTXO from the DAO validator,
-    // which is responsible for managing proposals and voting. this will ensure that any changes to the configuration
-    // are made in the context of an approved proposal.
-    // ---
-    // we could take the proposal_id from the redeemer and check if it exists in the GovernanceDatum, 
-    // and confirm that the output_GovernanceDatum.proposal_state is Executed. this would ensure that the change is only implemented once the proposal is approved.
-    // ---
-    //  question is how to get the GovernanceDatum from the tx?
-    // if we implement mint in DAO contract, we can use the minting policy to find the GovernanceDatum.
-    // what would be better to add the minting policy as paramenter to the config_datum_holder validator?
-    // OR add it in the ConfigDatum type?
+    // This validator ensures that any changes to the configuration are made
+    // only after a corresponding proposal has been approved and executed in the DAO.
     //
-    // Answer: To get the GovernanceDatum, you need to identify the transaction input
-    // that comes from the DAO validator. The datum attached to that input will be
-    // the GovernanceDatum.
-    //
-    // Of your two suggestions, adding the DAO validator's identity (e.g., its
-    // validator hash) to the ConfigDatum is the cleaner approach. You can then
-    // iterate through `tx.inputs`, find the one sent from the DAO validator's
-    // address, and access its datum.
-    //
-    // ---
-    //
-    // Alternative Method: Use a unique NFT.
-    // 1. Ensure the DAO validator's UTXO always holds a specific NFT.
-    // 2. Store this NFT's policy ID in the ConfigDatum.
-    // 3. In this validator, find the transaction input that contains this NFT.
-    //    This input must be from the DAO validator, allowing you to get the
-    //    GovernanceDatum from it.
-    datum.categories == [proposal_id]
-    // added just to avoid the unused warning
+    // It performs the following checks:
+    // 1. Finds the DAO validator's input and output in the transaction using an NFT
+    //    uniquely associated with the proposal (`proposal_id`). The policy ID of this
+    //    NFT is stored in the `ConfigDatum`.
+    // 2. Extracts the `GovernanceDatum` from both the DAO's input and output.
+    // 3. Verifies that the proposal's state transitions from `InProgess` to `Executed`,
+    //    confirming that the proposal has been successfully approved and is now being
+    //    implemented.
+    when datum is {
+      Some(datum) -> {
+        let dao_input =
+          find.input_by_nft(tx.inputs, datum.dao_policyid, proposal_id)
+        let dao_output =
+          utils.output_by_nft(tx.outputs, datum.dao_policyid, proposal_id)
+        let input_governance_datum = {
+          expect InlineDatum(data) = dao_input.output.datum
+          utils.governance_datum_from_data(data)
+        }
+        let output_governance_datum = {
+          expect InlineDatum(data) = dao_output.datum
+          utils.governance_datum_from_data(data)
+        }
+        and {
+          input_governance_datum.proposal_state == InProgess,
+          output_governance_datum.proposal_state == Executed,
+        }
+      }
+      _ -> fail @"Invalid datum: Expected ConfigDatum, got None."
+    }
   }
 
   else(_) {

@@ -71,6 +71,7 @@ validator dao(config_nft: PolicyId) {
           // 8. The relevant vote count must be incremented by exactly one.
           VoteProposal { proposal_id, voter, vote } -> and {
               proposal_id == self_output_datum.proposal_id,
+              datum.proposal_id == self_output_datum.proposal_id,
               datum.proposal_state == InProgess,
               moment.is_contained(datum.deadline, tx.validity_range),
               dict.has_key(datum.votes, voter),
@@ -100,7 +101,7 @@ validator dao(config_nft: PolicyId) {
                 // 3. The transaction must be after the voting deadline.
                 // 4. The number of 'Yes' votes must be strictly greater than 'No' votes.
                 // 5. The final state of the proposal in the output datum must be 'Executed'.
-                proposal_id == self_output_datum.proposal_id,
+                proposal_id == datum.proposal_id,
                 datum.proposal_state == InProgess,
                 moment.is_after(datum.deadline, tx.validity_range),
                 datum.votes_count.no > datum.votes_count.yes,
@@ -115,7 +116,6 @@ validator dao(config_nft: PolicyId) {
                 identication_tkn,
               )
             when self_output_datum.proposal_action is {
-              // This action is not implemented yet.
               ValidatorAdd(added_addr) -> {
                 let multisig_validator_group_new =
                   Multisig {
@@ -163,6 +163,7 @@ validator dao(config_nft: PolicyId) {
           // 5. The final state of the proposal in the output datum must be 'Rejected'.
           RejectProposal { proposal_id } -> and {
               proposal_id == self_output_datum.proposal_id,
+              datum.proposal_id == self_output_datum.proposal_id,
               datum.proposal_state == InProgess,
               moment.is_after(datum.deadline, tx.validity_range),
               datum.votes_count.no > datum.votes_count.yes,

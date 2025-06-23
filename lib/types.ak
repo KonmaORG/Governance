@@ -97,4 +97,6 @@ pub type ConfigDatum {
   cet_policyid: PolicyId,
   /// The policy ID of the Carbon Offsetting Token (COT).
   cot_policyid: PolicyId,
+  /// The wallet address for the DAO.
+  dao_policyid: PolicyId,
 }
