@@ -20,7 +20,7 @@ use types/redeemer.{
   VoteProposal,
 }
 use types/utils.{
-  Abstain, Executed, FeeAddressUpdate, FeeAmountUpdate, InProgess, Multisig, No,
+  Abstain, Executed, FeeAddressUpdate, FeeAmountUpdate, InProgress, Multisig, No,
   Pending, Rejected, ValidatorAdd, ValidatorRemove, Yes,
 } as types
 
@@ -80,12 +80,12 @@ validator dao(config_nft: PolicyId) {
           VoteProposal { proposal_id, voter, vote } -> and {
               proposal_id == self_output_datum.proposal_id,
               datum.proposal_id == self_output_datum.proposal_id,
-              datum.proposal_state == InProgess,
+              datum.proposal_state == InProgress,
               moment.is_contained(datum.deadline, tx.validity_range),
               dict.has_key(datum.votes, voter),
               Some(Pending) == dict.get(datum.votes, voter),
               Some(vote) == dict.get(self_output_datum.votes, voter),
-              self_output_datum.proposal_state == InProgess,
+              self_output_datum.proposal_state == InProgress,
               when vote is {
                 Yes ->
                   datum.votes_count.yes + 1 == self_output_datum.votes_count.yes
@@ -110,7 +110,7 @@ validator dao(config_nft: PolicyId) {
                 // 4. The number of 'Yes' votes must be strictly greater than 'No' votes.
                 // 5. The final state of the proposal in the output datum must be 'Executed'.
                 proposal_id == datum.proposal_id,
-                datum.proposal_state == InProgess,
+                datum.proposal_state == InProgress,
                 moment.is_after(datum.deadline, tx.validity_range),
                 datum.votes_count.no > datum.votes_count.yes,
                 self_output_datum.proposal_state == Executed,
@@ -176,7 +176,7 @@ validator dao(config_nft: PolicyId) {
           RejectProposal { proposal_id } -> and {
               proposal_id == self_output_datum.proposal_id,
               datum.proposal_id == self_output_datum.proposal_id,
-              datum.proposal_state == InProgess,
+              datum.proposal_state == InProgress,
               moment.is_after(datum.deadline, tx.validity_range),
               datum.votes_count.no > datum.votes_count.yes,
               self_output_datum.proposal_state == Rejected,
@@ -193,7 +193,7 @@ validator dao(config_nft: PolicyId) {
         // output datum must be a GovernanceDatum
         // must be signedby the submitted_by
         // output datum proposal_id must match the proposal_id from redeemer
-        // output datum proposal_state must be InProgess
+        // output datum proposal_state must be InProgress
         // output must be going to a script address
 
         let output = utils.output_by_nft(tx.outputs, policy_id, proposal_id)
@@ -204,7 +204,7 @@ validator dao(config_nft: PolicyId) {
         and {
           list.has(tx.extra_signatories, datum.submitted_by),
           datum.proposal_id == proposal_id,
-          datum.proposal_state == InProgess,
+          datum.proposal_state == InProgress,
           output.address.payment_credential == Script(policy_id),
         }
       }

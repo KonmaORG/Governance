@@ -6,6 +6,7 @@ import {
   type WalletApi,
 } from "@lucid-evolution/lucid";
 import { useCardano } from "./context/CardanoContext";
+import { datumData } from "./types/var_test";
 type Wallet = {
   name: string;
   icon: string;
@@ -47,6 +48,7 @@ function App() {
   function disconnect() {
     setCardano({});
   }
+  console.log("datum", datumData.toUpperCase());
 
   return (
     <>

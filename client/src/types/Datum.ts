@@ -6,6 +6,7 @@ import {
   ProposalActionSchema,
   ProposalStateSchema,
   Voter,
+  VotesArraySchema,
   VotesCountSchema,
   VotesSchema,
 } from "./Utils";
@@ -29,7 +30,7 @@ export const GovernanceDatumSchema = Data.Object({
   proposal_id: Data.Bytes(),
   submitted_by: Voter,
   proposal_action: ProposalActionSchema,
-  votes: VotesSchema,
+  votes: VotesArraySchema,
   votes_count: VotesCountSchema,
   deadline: MomentSchema,
   proposal_state: ProposalStateSchema,

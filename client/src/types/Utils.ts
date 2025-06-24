@@ -30,7 +30,10 @@ export const VoteSchema = Data.Enum([
   Data.Literal("Yes"),
   Data.Literal("No"),
   Data.Literal("Abstain"),
+  Data.Literal("Pending"),
 ]);
+export type Vote = Data.Static<typeof VoteSchema>;
+export const Vote = VoteSchema as unknown as Vote;
 // Voter ---
 export const Voter = Data.Bytes();
 // votesCount ---
@@ -48,6 +51,15 @@ export const VotesSchema = Data.Object({
 });
 export type Votes = Data.Static<typeof VotesSchema>;
 export const Votes = VotesSchema as unknown as Votes;
+// VotesArray ---
+export const VotesArraySchema = Data.Array(
+  Data.Object({
+    voter: Voter,
+    vote: VoteSchema,
+  })
+);
+export type VotesArray = Data.Static<typeof VotesArraySchema>;
+export const VotesArray = VotesSchema as unknown as VotesArray;
 // ProposalAction ---
 export const ProposalActionSchema = Data.Enum([
   Data.Object({

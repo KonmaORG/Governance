@@ -40,7 +40,7 @@ pub type Multisig {
 /// Represents the possible states of a governance proposal.
 pub type ProposalState {
   /// The proposal is currently active and open for voting.
-  InProgess
+  InProgress
   /// The proposal has been successfully executed.
   Executed
   /// The proposal has been rejected.

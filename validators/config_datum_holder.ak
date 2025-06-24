@@ -4,7 +4,7 @@
 use cardano/transaction.{InlineDatum, Transaction}
 use functions/utils as lib
 use types/datum.{ConfigDatum}
-use types/utils.{Executed, InProgess}
+use types/utils.{Executed, InProgress}
 use validation/find
 
 /// The `config_datum_holder` validator locks the main `ConfigDatum` and the Identification NFT.
@@ -25,7 +25,7 @@ validator config_datum_holder {
     //    uniquely associated with the proposal (`proposal_id`). The policy ID of this
     //    NFT is stored in the `ConfigDatum`.
     // 2. Extracts the `GovernanceDatum` from both the DAO's input and output.
-    // 3. Verifies that the proposal's state transitions from `InProgess` to `Executed`,
+    // 3. Verifies that the proposal's state transitions from `InProgress` to `Executed`,
     //    confirming that the proposal has been successfully approved and is now being
     //    implemented.
     when datum is {
@@ -43,7 +43,7 @@ validator config_datum_holder {
           lib.governance_datum_from_data(data)
         }
         and {
-          input_governance_datum.proposal_state == InProgess,
+          input_governance_datum.proposal_state == InProgress,
           output_governance_datum.proposal_state == Executed,
         }
       }
