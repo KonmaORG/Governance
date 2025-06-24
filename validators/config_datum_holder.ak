@@ -1,9 +1,10 @@
-// This validator is responsible for safeguarding the central configuration datum of the protocol.
-// It ensures that any modifications to the configuration are authorized by a multi-signature group.
+//// This validator is responsible for safeguarding the central configuration datum of the protocol.
+//// It ensures that any modifications to the configuration are authorized by a multi-signature group.
 
 use cardano/transaction.{InlineDatum, Transaction}
-use types.{ConfigDatum, Executed, InProgess}
-use utils
+use functions/utils as lib
+use types/datum.{ConfigDatum}
+use types/utils.{Executed, InProgess}
 use validation/find
 
 /// The `config_datum_holder` validator locks the main `ConfigDatum` and the Identification NFT.
@@ -32,14 +33,14 @@ validator config_datum_holder {
         let dao_input =
           find.input_by_nft(tx.inputs, datum.dao_policyid, proposal_id)
         let dao_output =
-          utils.output_by_nft(tx.outputs, datum.dao_policyid, proposal_id)
+          lib.output_by_nft(tx.outputs, datum.dao_policyid, proposal_id)
         let input_governance_datum = {
           expect InlineDatum(data) = dao_input.output.datum
-          utils.governance_datum_from_data(data)
+          lib.governance_datum_from_data(data)
         }
         let output_governance_datum = {
           expect InlineDatum(data) = dao_output.datum
-          utils.governance_datum_from_data(data)
+          lib.governance_datum_from_data(data)
         }
         and {
           input_governance_datum.proposal_state == InProgess,

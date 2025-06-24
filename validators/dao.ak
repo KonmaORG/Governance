@@ -1,3 +1,9 @@
+//// DAO Proposal Management Validator
+//// This validator manages the lifecycle of DAO proposals, including voting and execution.
+//// It ensures that proposals can only be voted on when they are in progress, and that
+//// they can only be executed after the voting period has ended and the proposal has been approved.
+//// It also handles the rejection of proposals that fail to meet the necessary criteria.
+
 use aiken/collection/dict
 use aiken/collection/list
 use cardano/address.{Script}
@@ -5,16 +11,18 @@ use cardano/assets.{PolicyId}
 use cardano/transaction.{
   InlineDatum, OutputReference, Transaction, find_input, find_script_outputs,
 }
-use types.{
-  Abstain, ConfigDatum, ExecuteProposal, Executed, FeeAddressUpdate,
-  FeeAmountUpdate, GovernanceDatum, GovernanceRedeemer, InProgess, Multisig, No,
-  Pending, RejectProposal, Rejected, SubmitProposal, ValidatorAdd,
-  ValidatorRemove, VoteProposal, Yes,
-}
+use constants
+use functions/utils
+use types/datum.{ConfigDatum, GovernanceDatum}
 use types/moment
-use utils
-
-pub const identication_tkn = "KARBON_IDENTIFICATION"
+use types/redeemer.{
+  ExecuteProposal, GovernanceRedeemer, RejectProposal, SubmitProposal,
+  VoteProposal,
+}
+use types/utils.{
+  Abstain, Executed, FeeAddressUpdate, FeeAmountUpdate, InProgess, Multisig, No,
+  Pending, Rejected, ValidatorAdd, ValidatorRemove, Yes,
+} as types
 
 /// A validator for managing DAO proposals.
 /// This script controls the lifecycle of a proposal, including voting and resolution.
@@ -108,12 +116,16 @@ validator dao(config_nft: PolicyId) {
                 self_output_datum.proposal_state == Executed,
               }
             let current_config_datum =
-              utils.ref_datum_by_nft(tx.inputs, config_nft, identication_tkn)
+              utils.ref_datum_by_nft(
+                tx.inputs,
+                config_nft,
+                constants.identication_tkn,
+              )
             let new_config_datum =
               utils.output_ref_datum_by_nft(
                 tx.outputs,
                 config_nft,
-                identication_tkn,
+                constants.identication_tkn,
               )
             when self_output_datum.proposal_action is {
               ValidatorAdd(added_addr) -> {
