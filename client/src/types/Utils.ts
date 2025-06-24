@@ -65,3 +65,11 @@ export const ProposalActionSchema = Data.Enum([
 ]);
 export type ProposalAction = Data.Static<typeof ProposalActionSchema>;
 export const ProposalAction = ProposalActionSchema as unknown as ProposalAction;
+
+// Moment ---
+export const MomentSchema = Data.Object({
+  start: Data.Integer(),
+  end: Data.Integer(),
+});
+export type Moment = Data.Static<typeof MomentSchema>;
+export const Moment = MomentSchema as unknown as Moment;
