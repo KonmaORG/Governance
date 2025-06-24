@@ -49,6 +49,7 @@ function App() {
   }
   return (
     <>
+      {wallets.length === 0 && "No wallets found."}
       {wallets.map((wallet, w) => (
         <button key={`wallet.${w}`} onClick={() => connectWallet(wallet)}>
           {wallet.name}
