@@ -17,14 +17,9 @@ export const MultisigSchema = Data.Object({
 });
 export type Multisig = Data.Static<typeof MultisigSchema>;
 export const Multisig = MultisigSchema as unknown as Multisig;
-// ProposalState ---
-export const ProposalStateSchema = Data.Enum([
-  Data.Literal("InProgress"),
-  Data.Literal("Executed"),
-  Data.Literal("Rejected"),
-]);
-export type ProposalState = Data.Static<typeof ProposalStateSchema>;
-export const ProposalState = ProposalStateSchema as unknown as ProposalState;
+
+// Voter ---
+export const Voter = Data.Bytes();
 // Vote ---
 export const VoteSchema = Data.Enum([
   Data.Literal("Yes"),
@@ -34,8 +29,25 @@ export const VoteSchema = Data.Enum([
 ]);
 export type Vote = Data.Static<typeof VoteSchema>;
 export const Vote = VoteSchema as unknown as Vote;
-// Voter ---
-export const Voter = Data.Bytes();
+// VotesArray ---
+export const VotesArraySchema = Data.Array(
+  Data.Object({
+    voter: Voter,
+    vote: VoteSchema,
+  })
+);
+export type VotesArray = Data.Static<typeof VotesArraySchema>;
+export const VotesArray = VotesArraySchema as unknown as VotesArray;
+
+// ProposalState ---
+export const ProposalStateSchema = Data.Enum([
+  Data.Literal("InProgress"),
+  Data.Literal("Executed"),
+  Data.Literal("Rejected"),
+]);
+export type ProposalState = Data.Static<typeof ProposalStateSchema>;
+export const ProposalState = ProposalStateSchema as unknown as ProposalState;
+
 // votesCount ---
 export const VotesCountSchema = Data.Object({
   yes: Data.Integer(),
@@ -52,14 +64,14 @@ export const VotesSchema = Data.Object({
 export type Votes = Data.Static<typeof VotesSchema>;
 export const Votes = VotesSchema as unknown as Votes;
 // VotesArray ---
-export const VotesArraySchema = Data.Array(
-  Data.Object({
-    voter: Voter,
-    vote: VoteSchema,
-  })
-);
-export type VotesArray = Data.Static<typeof VotesArraySchema>;
-export const VotesArray = VotesSchema as unknown as VotesArray;
+// export const VotesArraySchema = Data.Array(
+//   Data.Object({
+//     voter: Voter,
+//     vote: VoteSchema,
+//   })
+// );
+// export type VotesArray = Data.Static<typeof VotesArraySchema>;
+// export const VotesArray = VotesSchema as unknown as VotesArray;
 // ProposalAction ---
 export const ProposalActionSchema = Data.Enum([
   Data.Object({

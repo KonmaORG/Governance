@@ -64,5 +64,8 @@ test datum() {
   trace @"vote_proposal": serialise(vote_proposal)
   trace @"execute_proposal": serialise(execute_proposal)
   trace @"reject_proposal": serialise(reject_proposal)
+  // -----ENTIRE DATUM AS CBOR-----
+  trace @"------------------DATUM AS CBOR-----------------"
+  trace @"datum_var": serialise(datum_var)
   True
 }
