@@ -47,30 +47,49 @@ function App() {
   function disconnect() {
     setCardano({});
   }
+
   return (
     <>
       {wallets.length === 0 && "No wallets found."}
       {!address ? (
         wallets.map((wallet, w) => (
-          <button key={`wallet.${w}`} onClick={() => connectWallet(wallet)}>
+          <button
+            key={`wallet.${w}`}
+            className="bg-green-700 p-3 rounded-lg"
+            onClick={() => connectWallet(wallet)}
+          >
             {wallet.name}
           </button>
         ))
       ) : (
         <div className="flex flex-col items-center gap-2">
           <p>Address: {address}</p>
-          <button onClick={disconnect}>disconnect</button>
+          <button className="bg-red-700 p-3 rounded-lg" onClick={disconnect}>
+            disconnect
+          </button>
           <div className="flex gap-2 ">
-            <button disabled className="">
+            <button
+              disabled
+              className="bg-green-700 p-3 rounded-lg disabled:bg-green-800"
+            >
               SubmitProposal
             </button>
-            <button disabled className="">
+            <button
+              disabled
+              className="bg-green-700 p-3 rounded-lg disabled:bg-green-800"
+            >
               VoteProposal
             </button>
-            <button disabled className="">
+            <button
+              disabled
+              className="bg-green-700 p-3 rounded-lg disabled:bg-green-800"
+            >
               ExecuteProposal
             </button>
-            <button disabled className="">
+            <button
+              disabled
+              className="bg-green-700 p-3 rounded-lg disabled:bg-green-800"
+            >
               RejectProposal
             </button>
           </div>
