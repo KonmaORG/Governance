@@ -50,16 +50,31 @@ function App() {
   return (
     <>
       {wallets.length === 0 && "No wallets found."}
-      {wallets.map((wallet, w) => (
-        <button key={`wallet.${w}`} onClick={() => connectWallet(wallet)}>
-          {wallet.name}
-        </button>
-      ))}
-      {address && (
-        <>
+      {!address ? (
+        wallets.map((wallet, w) => (
+          <button key={`wallet.${w}`} onClick={() => connectWallet(wallet)}>
+            {wallet.name}
+          </button>
+        ))
+      ) : (
+        <div className="flex flex-col items-center gap-2">
           <p>Address: {address}</p>
           <button onClick={disconnect}>disconnect</button>
-        </>
+          <div className="flex gap-2 ">
+            <button disabled className="">
+              SubmitProposal
+            </button>
+            <button disabled className="">
+              VoteProposal
+            </button>
+            <button disabled className="">
+              ExecuteProposal
+            </button>
+            <button disabled className="">
+              RejectProposal
+            </button>
+          </div>
+        </div>
       )}
     </>
   );
