@@ -48,7 +48,7 @@ function App() {
   function disconnect() {
     setCardano({});
   }
-  console.log("datum", datumData.toUpperCase());
+  datumData();
 
   return (
     <>
