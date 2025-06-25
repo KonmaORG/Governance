@@ -1,6 +1,7 @@
 //// This validator is responsible for safeguarding the central configuration datum of the protocol.
 //// It ensures that any modifications to the configuration are authorized by a multi-signature group.
 
+use cardano/assets.{PolicyId}
 use cardano/transaction.{InlineDatum, Transaction}
 use functions/utils as lib
 use types/datum.{ConfigDatum}
@@ -10,7 +11,8 @@ use validation/find
 /// The `config_datum_holder` validator locks the main `ConfigDatum` and the Identification NFT.
 /// Spending from this validator requires approval from a specified multi-signature group,
 /// preventing unauthorized changes to the protocol's configuration.
-validator config_datum_holder {
+/// added config_nft as param to have unique address while testing
+validator config_datum_holder(_config_nft: PolicyId) {
   spend(
     datum: Option<ConfigDatum>,
     redeemer proposal_id: ByteArray,

@@ -1,5 +1,6 @@
 import {
   applyParamsToScript,
+  Constr,
   Data,
   fromText,
   mintingPolicyToId,
@@ -10,9 +11,28 @@ import {
   type Network,
   type Validator,
 } from "@lucid-evolution/lucid";
-import { script } from "../config/scripts/script";
+import { script } from "../config/script";
 import { GovernanceRedeemer } from "../types/Redeemer";
 import type { GovernanceDatum } from "../types/Datum";
+
+export async function MintIdentificationToken(lucid: LucidEvolution) {
+  const mint = new Constr(0, []);
+  const redeemer = Data.to(mint);
+
+  const tx = await lucid
+    .newTx()
+    .collectFrom([utxos[0]])
+    .mintAssets(mintedAssets, redeemer)
+    .attach.MintingPolicy(mintingValidator)
+    .complete();
+
+  const signed = await tx.sign.withWallet().complete();
+  const txHash = await signed.submit();
+  console.log("-----------IdentificationNFT__Mint---------");
+  console.log("policyId: ", policyID);
+}
+
+export async function AttachConfigDatum(lucid: LucidEvolution) {}
 
 export async function SubmitProposal(
   lucid: LucidEvolution,
