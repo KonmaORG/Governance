@@ -1,3 +1,4 @@
+// non Emulator
 import "./App.css";
 import {
   Blockfrost,

@@ -29,6 +29,7 @@ import {
   type Multisig,
 } from "../types/Utils";
 import { refConfigDatum, refConfigUtxo } from "./utils";
+import { accountA, accountB, accountC, accountD } from "./emulator";
 
 export async function MintIdentificationToken(
   lucid: LucidEvolution,
@@ -87,24 +88,33 @@ export async function AttachConfigDatum(lucid: LucidEvolution) {
     policy_id: "",
     asset_name: fromText(""),
   };
+  // const signer: Multisig = {
+  //   required: 3n,
+  //   signers: [
+  //     paymentCredentialOf(
+  //       "addr_test1qzk08tz3s7xcaxq5q0udh5kpm6fz8vhpd230c07nehtzl5ahaqav4a8stg7sfudah7uxw5g9umv897ppygy559le55tql9690r"
+  //     ).hash,
+  //     paymentCredentialOf(
+  //       "addr_test1qppjp6z53cr6axg59ezf93vlcqqva7wg6d5zfxr5fctnsuveaxzar94mukjwdp323ahhs3tsn0nmawextjtkfztcs20q6fmam2"
+  //     ).hash,
+  //     paymentCredentialOf(
+  //       "addr_test1qzzxrfxg6hq8zerw8g85cvcpxutjtgez5v75rs99kdnn404cfuf2xydw2zrehxmvd3k9nqywe3d6mn64a08ncc5h5s3qd5ewlk"
+  //     ).hash,
+  //     paymentCredentialOf(
+  //       "addr_test1qr3deh8jxn9ejxmuunv6krgtt6q600tt289pkdhg0vrfcvvrm9x488u4tefkkjay9k49yvdwc459uxc2064eulk2raaqjzwsv3"
+  //     ).hash,
+  //     paymentCredentialOf(
+  //       "addr_test1qzs3pj8vvkhu8d7g0p3sfj8896wds459gqcdes04c5fp7pcs2k7ckl5mly9f89s6zpnx9av7qnl59edp0jy2ac6twtmss44zee"
+  //     ).hash,
+  //   ],
+  // };
   const signer: Multisig = {
     required: 3n,
     signers: [
-      paymentCredentialOf(
-        "addr_test1qzk08tz3s7xcaxq5q0udh5kpm6fz8vhpd230c07nehtzl5ahaqav4a8stg7sfudah7uxw5g9umv897ppygy559le55tql9690r"
-      ).hash,
-      paymentCredentialOf(
-        "addr_test1qppjp6z53cr6axg59ezf93vlcqqva7wg6d5zfxr5fctnsuveaxzar94mukjwdp323ahhs3tsn0nmawextjtkfztcs20q6fmam2"
-      ).hash,
-      paymentCredentialOf(
-        "addr_test1qzzxrfxg6hq8zerw8g85cvcpxutjtgez5v75rs99kdnn404cfuf2xydw2zrehxmvd3k9nqywe3d6mn64a08ncc5h5s3qd5ewlk"
-      ).hash,
-      paymentCredentialOf(
-        "addr_test1qr3deh8jxn9ejxmuunv6krgtt6q600tt289pkdhg0vrfcvvrm9x488u4tefkkjay9k49yvdwc459uxc2064eulk2raaqjzwsv3"
-      ).hash,
-      paymentCredentialOf(
-        "addr_test1qzs3pj8vvkhu8d7g0p3sfj8896wds459gqcdes04c5fp7pcs2k7ckl5mly9f89s6zpnx9av7qnl59edp0jy2ac6twtmss44zee"
-      ).hash,
+      paymentCredentialOf(accountA.address).hash,
+      paymentCredentialOf(accountB.address).hash,
+      paymentCredentialOf(accountC.address).hash,
+      paymentCredentialOf(accountD.address).hash,
     ],
   };
   // scriptHashToCredential
