@@ -75,21 +75,22 @@ validator dao(config_nft: PolicyId) {
           // 6. The output datum must correctly reflect the new vote cast by the voter.
           // 7. The proposal state must remain 'InProgress' after the vote.
           // 8. The relevant vote count must be incremented by exactly one.
+          // TODO: check if the voter has signed the tx
           VoteProposal { proposal_id, voter, vote } -> and {
-              proposal_id == self_output_datum.proposal_id,
-              datum.proposal_id == self_output_datum.proposal_id,
-              datum.proposal_state == InProgress,
-              moment.is_contained(datum.deadline, tx.validity_range),
-              Pending == utils.get_vote(datum.votes, voter),
-              vote == utils.get_vote(self_output_datum.votes, voter),
-              self_output_datum.proposal_state == InProgress,
+              (proposal_id == self_output_datum.proposal_id)?,
+              (datum.proposal_id == self_output_datum.proposal_id)?,
+              (datum.proposal_state == InProgress)?,
+              moment.is_contained(datum.deadline, tx.validity_range)?,
+              (Pending == utils.get_vote(datum.votes, voter))?,
+              (vote == utils.get_vote(self_output_datum.votes, voter))?,
+              (self_output_datum.proposal_state == InProgress)?,
               when vote is {
                 Yes ->
-                  datum.votes_count.yes + 1 == self_output_datum.votes_count.yes
+                  (datum.votes_count.yes + 1 == self_output_datum.votes_count.yes)?
                 No ->
-                  datum.votes_count.no + 1 == self_output_datum.votes_count.no
+                  (datum.votes_count.no + 1 == self_output_datum.votes_count.no)?
                 Abstain ->
-                  datum.votes_count.abstain + 1 == self_output_datum.votes_count.abstain
+                  (datum.votes_count.abstain + 1 == self_output_datum.votes_count.abstain)?
                 _ -> fail @"Invalid Vote type"
               },
             }
@@ -192,7 +193,6 @@ validator dao(config_nft: PolicyId) {
         // output datum proposal_id must match the proposal_id from redeemer
         // output datum proposal_state must be InProgress
         // output must be going to a script address
-        trace @"started"
         let output = utils.output_by_nft(tx.outputs, policy_id, proposal_id)
         let datum = {
           expect InlineDatum(data) = output.datum
@@ -200,13 +200,11 @@ validator dao(config_nft: PolicyId) {
         }
         // TODO: configDatum.daoMember must match the datum.votes list.
         // TODO: votes_count must be 0 for yes, no, abstain
-        trace @"Script(policy_id)-----": Script(policy_id)
-        trace @"----paymentCredential": output.address.payment_credential
         and {
-          list.has(tx.extra_signatories, datum.submitted_by)?,
-          (datum.proposal_id == proposal_id)?,
-          (datum.proposal_state == InProgress)?,
-          (output.address.payment_credential == Script(policy_id))?,
+          list.has(tx.extra_signatories, datum.submitted_by),
+          datum.proposal_id == proposal_id,
+          datum.proposal_state == InProgress,
+          output.address.payment_credential == Script(policy_id),
         }
       }
       _ -> fail @"Invalid Redeemer: only SubmitProposal is allowed in minting"

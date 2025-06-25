@@ -4,12 +4,15 @@ import {
   AttachConfigDatum,
   MintIdentificationToken,
   SubmitProposal,
+  VoteProposal,
 } from "../lib/transactions";
+import type { Vote } from "../types/Utils";
 
 export default function TxButtons() {
   const { address, lucid } = useCardano();
   const [proposalId, setProposalId] = useState<string>("");
   const [result, setResult] = useState<string>("");
+  const [vote, setVote] = useState<Vote | null>(null);
   async function ProposalTx(
     proposalType: "Submit" | "Vote" | "Execute" | "Reject"
   ) {
@@ -18,9 +21,15 @@ export default function TxButtons() {
       return;
     }
     if (proposalType === "Submit") {
-      SubmitProposal(lucid, proposalId, address);
+      const result = await SubmitProposal(lucid, proposalId, address);
+      setResult(result);
     } else if (proposalType === "Vote") {
-      console.log(`Executing ${proposalType} Proposal Transaction...`);
+      if (!vote) {
+        console.log("select vote");
+        return;
+      }
+      const result = await VoteProposal(lucid, proposalId, address, vote);
+      setResult(result);
     } else if (proposalType === "Execute") {
       console.log(`Executing ${proposalType} Proposal Transaction...`);
     } else if (proposalType === "Reject") {
@@ -41,13 +50,6 @@ export default function TxButtons() {
   }
   return (
     <>
-      <input
-        type="text"
-        placeholder="Proposal ID"
-        className="p-3 rounded-lg border-2 border-green-700"
-        value={proposalId}
-        onChange={(e) => setProposalId(e.target.value)}
-      />
       <div className="flex gap-2">
         <button
           className="bg-blue-700 p-3 rounded-lg disabled:bg-blue-800"
@@ -62,6 +64,13 @@ export default function TxButtons() {
           Attach Config Datum
         </button>
       </div>
+      <input
+        type="text"
+        placeholder="Proposal ID"
+        className="p-3 rounded-lg border-2 border-green-700"
+        value={proposalId}
+        onChange={(e) => setProposalId(e.target.value)}
+      />
       <div className="flex gap-2 ">
         <button
           onClick={() => ProposalTx("Submit")}
@@ -69,12 +78,23 @@ export default function TxButtons() {
         >
           SubmitProposal
         </button>
-        <button
-          onClick={() => ProposalTx("Vote")}
-          className="bg-green-700 p-3 rounded-lg disabled:bg-green-800"
-        >
-          VoteProposal
-        </button>
+        <div className="flex flex-col">
+          <select
+            value={vote as string}
+            onChange={(e) => setVote(e.target.value as Vote)}
+            className="text-black bg-green-800"
+          >
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+            <option value="Abstain">Abstain</option>
+          </select>
+          <button
+            onClick={() => ProposalTx("Vote")}
+            className="bg-green-700 p-3 rounded-lg disabled:bg-green-800"
+          >
+            VoteProposal
+          </button>
+        </div>
         <button
           onClick={() => ProposalTx("Execute")}
           className="bg-green-700 p-3 rounded-lg disabled:bg-green-800"

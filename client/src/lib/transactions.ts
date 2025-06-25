@@ -28,7 +28,7 @@ import {
   type AssetClass,
   type Multisig,
 } from "../types/Utils";
-import { refConfigDatum } from "./utils";
+import { refConfigDatum, refConfigUtxo } from "./utils";
 
 export async function MintIdentificationToken(
   lucid: LucidEvolution,
@@ -213,6 +213,81 @@ export async function SubmitProposal(
   const tx = await lucid
     .newTx()
     .mintAssets(proposalAsset, Data.to(redeemer, GovernanceRedeemer))
+    .pay.ToContract(
+      validatorAddress,
+      { kind: "inline", value: Data.to(datum, GovernanceDatum) },
+      { lovelace: 1n, ...proposalAsset }
+    )
+    .attach.MintingPolicy(validator)
+    .addSigner(address)
+    .complete();
+
+  const signedTx = await tx.sign.withWallet().complete();
+  const txHash = await signedTx.submit();
+
+  return txHash;
+}
+
+export async function VoteProposal(
+  lucid: LucidEvolution,
+  proposalId: string,
+  address: Address,
+  vote: Vote
+) {
+  const configValidator: Validator = {
+    type: "PlutusV3",
+    script: script.ConfigDatumHolder,
+  };
+  const configPolicyId = mintingPolicyToId(configValidator);
+  const validator: Validator = {
+    type: "PlutusV3",
+    script: applyParamsToScript(script.Dao, [configPolicyId]), // config_nft
+  };
+  const policyId = mintingPolicyToId(validator);
+  const validatorAddress = validatorToAddress(
+    lucid.config().network as Network,
+    validator
+  );
+  // mintingPolicyToId()
+  const proposalAsset = { [policyId + fromText(proposalId)]: 1n };
+  const configDatumUtxo = await refConfigUtxo(lucid);
+  const redeemer: GovernanceRedeemer = {
+    VoteProposal: {
+      proposal_id: fromText(proposalId),
+      vote,
+      voter: paymentCredentialOf(address).hash,
+    },
+  };
+  const unit = policyId + fromText(proposalId);
+  const utxo = await lucid.utxoByUnit(unit);
+  const data = await lucid.datumOf(utxo);
+  const oldDatum = Data.castFrom(data, GovernanceDatum);
+  const updatedVotes = oldDatum.votes.map((voterEntry) =>
+    voterEntry.voter === paymentCredentialOf(address).hash
+      ? { ...voterEntry, vote }
+      : voterEntry
+  );
+  const datum: GovernanceDatum = {
+    ...oldDatum,
+    votes: updatedVotes,
+    votes_count: {
+      yes:
+        vote === "Yes"
+          ? oldDatum.votes_count.yes + 1n
+          : oldDatum.votes_count.yes,
+      no:
+        vote === "No" ? oldDatum.votes_count.no + 1n : oldDatum.votes_count.no,
+      abstain:
+        vote === "Abstain"
+          ? oldDatum.votes_count.abstain + 1n
+          : oldDatum.votes_count.abstain,
+    },
+  };
+
+  const tx = await lucid
+    .newTx()
+    .readFrom([configDatumUtxo])
+    .collectFrom([], Data.to(redeemer, GovernanceRedeemer))
     .pay.ToContract(
       validatorAddress,
       { kind: "inline", value: Data.to(datum, GovernanceDatum) },
