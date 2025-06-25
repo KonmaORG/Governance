@@ -184,6 +184,7 @@ export async function SubmitProposal(
   const proposalStart = BigInt(
     slotToUnixTime(lucid.config().network as Network, lucid.currentSlot())
   );
+  // console.log(emulator.now(), proposalStart);
   const proposalEnd = proposalStart + BigInt(60 * 60 * 24 * 30 * 1000); // 30 days
   const configDatum = await refConfigDatum(lucid);
   const votes_var: VotesArray = Array.from(
@@ -294,6 +295,8 @@ export async function VoteProposal(
       { lovelace: 1n, ...proposalAsset }
     )
     .attach.MintingPolicy(validator)
+    .validFrom(Number(oldDatum.deadline.start))
+    .validTo(Number(oldDatum.deadline.end))
     .addSigner(address)
     .complete();
 
