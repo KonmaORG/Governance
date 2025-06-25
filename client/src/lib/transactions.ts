@@ -23,8 +23,10 @@ import {
   IDENTIFICATION_TKN,
 } from "../config/constants";
 import {
+  ProposalAction,
   Vote,
   VotesArray,
+  Wallet,
   type AssetClass,
   type Multisig,
 } from "../types/Utils";
@@ -164,7 +166,8 @@ export async function AttachConfigDatum(lucid: LucidEvolution) {
 export async function SubmitProposal(
   lucid: LucidEvolution,
   proposalId: string,
-  address: Address
+  address: Address,
+  action: ProposalAction
 ): Promise<string> {
   if (!lucid || !proposalId || !address) {
     throw new Error("Lucid, proposal, or address is not defined.");
@@ -209,7 +212,7 @@ export async function SubmitProposal(
   const datum: GovernanceDatum = {
     proposal_id: fromText(proposalId),
     submitted_by: paymentCredentialOf(address).hash,
-    proposal_action: { FeeAmountUpdate: [101_000_000n] },
+    proposal_action: action,
     votes: votes_var, //votes can be extracted from the config datum.multisig, for that we need to have Identification script
     votes_count: { yes: 0n, no: 0n, abstain: 0n },
     deadline: { start: proposalStart, end: proposalEnd },
@@ -307,6 +310,107 @@ export async function VoteProposal(
     .attach.MintingPolicy(validator)
     .validFrom(Number(oldDatum.deadline.start))
     .validTo(Number(oldDatum.deadline.end))
+    .addSigner(address)
+    .complete();
+
+  const signedTx = await tx.sign.withWallet().complete();
+  const txHash = await signedTx.submit();
+
+  return txHash;
+}
+
+export async function ExecuteProposal(
+  lucid: LucidEvolution,
+  proposalId: string,
+  address: Address
+) {
+  const ref_assetName = IDENTIFICATION_TKN;
+  const karbonAsset = { [IDENTIFICATION_PID + fromText(ref_assetName)]: 1n };
+
+  const configValidator: Validator = {
+    type: "PlutusV3",
+    script: script.ConfigDatumHolder,
+  };
+  const configPolicyId = mintingPolicyToId(configValidator);
+  const configAddress = validatorToAddress(
+    lucid.config().network as Network,
+    configValidator
+  );
+  const validator: Validator = {
+    type: "PlutusV3",
+    script: applyParamsToScript(script.Dao, [configPolicyId]), // config_nft
+  };
+  const policyId = mintingPolicyToId(validator);
+  const validatorAddress = validatorToAddress(
+    lucid.config().network as Network,
+    validator
+  );
+  // mintingPolicyToId()
+  const proposalAsset = { [policyId + fromText(proposalId)]: 1n };
+  const configDatumUtxo = await refConfigUtxo(lucid);
+  const oldConfigDatum = await refConfigDatum(lucid);
+  const configRedeemer = proposalId;
+  const redeemer: GovernanceRedeemer = {
+    ExecuteProposal: {
+      proposal_id: fromText(proposalId),
+    },
+  };
+  const unit = policyId + fromText(proposalId);
+  const proposalUTXO = await lucid.utxoByUnit(unit);
+  const data = await lucid.datumOf(proposalUTXO);
+  const oldDatum = Data.castFrom(data, GovernanceDatum);
+  const datum: GovernanceDatum = {
+    ...oldDatum,
+    proposal_state: "Executed",
+  };
+
+  const action = datum.proposal_action;
+  const updatedConfigDatum: ConfigDatum = {
+    ...oldConfigDatum,
+    fees_amount:
+      "FeeAmountUpdate" in action
+        ? action.FeeAmountUpdate[0]
+        : oldConfigDatum.fees_amount,
+    fees_address:
+      "FeeAddressUpdate" in action
+        ? (action.FeeAddressUpdate[0] as unknown as Wallet)
+        : oldConfigDatum.fees_address,
+    multisig_validator_group:
+      "ValidatorAdd" in action
+        ? {
+            ...oldConfigDatum.multisig_validator_group,
+            signers: [
+              ...oldConfigDatum.multisig_validator_group.signers,
+              action.ValidatorAdd[0],
+            ],
+          }
+        : "ValidatorRemove" in action
+        ? {
+            ...oldConfigDatum.multisig_validator_group,
+            signers: oldConfigDatum.multisig_validator_group.signers.filter(
+              (signer) => signer !== action.ValidatorRemove[0]
+            ),
+          }
+        : oldConfigDatum.multisig_validator_group,
+  };
+  console.log("updatedConfigDatum", updatedConfigDatum);
+  const tx = await lucid
+    .newTx()
+    .collectFrom([configDatumUtxo], Data.to(configRedeemer))
+    .collectFrom([proposalUTXO], Data.to(redeemer, GovernanceRedeemer))
+    .pay.ToContract(
+      configAddress,
+      { kind: "inline", value: Data.to(updatedConfigDatum, ConfigDatum) },
+      { lovelace: 1n, ...karbonAsset }
+    )
+    .pay.ToContract(
+      validatorAddress,
+      { kind: "inline", value: Data.to(datum, GovernanceDatum) },
+      { lovelace: 1n, ...proposalAsset }
+    )
+    .attach.SpendingValidator(configValidator)
+    .attach.SpendingValidator(validator)
+    .validFrom(Number(oldDatum.deadline.end))
     .addSigner(address)
     .complete();
 

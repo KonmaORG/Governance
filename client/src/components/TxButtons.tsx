@@ -6,13 +6,14 @@ import {
   SubmitProposal,
   VoteProposal,
 } from "../lib/transactions";
-import type { Vote } from "../types/Utils";
+import type { ProposalAction, Vote } from "../types/Utils";
 
 export default function TxButtons() {
   const { address, lucid } = useCardano();
   const [proposalId, setProposalId] = useState<string>("");
   const [result, setResult] = useState<string>("");
   const [vote, setVote] = useState<Vote | null>(null);
+  const [action, setAction] = useState<ProposalAction | null>(null);
   async function ProposalTx(
     proposalType: "Submit" | "Vote" | "Execute" | "Reject"
   ) {
@@ -21,7 +22,11 @@ export default function TxButtons() {
       return;
     }
     if (proposalType === "Submit") {
-      const result = await SubmitProposal(lucid, proposalId, address);
+      if (!action) {
+        console.log("select action");
+        return;
+      }
+      const result = await SubmitProposal(lucid, proposalId, address, action);
       setResult(result);
     } else if (proposalType === "Vote") {
       if (!vote) {
@@ -71,6 +76,7 @@ export default function TxButtons() {
         value={proposalId}
         onChange={(e) => setProposalId(e.target.value)}
       />
+      setAction
       <div className="flex gap-2 ">
         <button
           onClick={() => ProposalTx("Submit")}
