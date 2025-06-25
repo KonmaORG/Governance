@@ -7,7 +7,7 @@ import {
   VotesArray,
   VotesCount,
 } from "./Utils";
-import { Action, GovernanceRedeemer } from "./Redeemer";
+import { GovernanceRedeemer } from "./Redeemer";
 
 const proposalId = fromText("1");
 const pkh1_hex = "a0a1a2a3a4a5a6a7a8a9b0b1b2b3b4b5b6b7b8b9c0c1c2c3d0d1d2d3";

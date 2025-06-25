@@ -16,13 +16,19 @@ import {
 } from "@lucid-evolution/lucid";
 import { script } from "../config/script";
 import { Action, GovernanceRedeemer } from "../types/Redeemer";
-import { ConfigDatum, type GovernanceDatum } from "../types/Datum";
+import { ConfigDatum, GovernanceDatum } from "../types/Datum";
 import {
   CATEGORIES,
   IDENTIFICATION_PID,
   IDENTIFICATION_TKN,
 } from "../config/constants";
-import type { AssetClass, Multisig } from "../types/Utils";
+import {
+  Vote,
+  VotesArray,
+  type AssetClass,
+  type Multisig,
+} from "../types/Utils";
+import { refConfigDatum } from "./utils";
 
 export async function MintIdentificationToken(
   lucid: LucidEvolution,
@@ -175,7 +181,17 @@ export async function SubmitProposal(
     slotToUnixTime(lucid.config().network as Network, lucid.currentSlot())
   );
   const proposalEnd = proposalStart + BigInt(60 * 60 * 24 * 30 * 1000); // 30 days
-
+  const configDatum = await refConfigDatum(lucid);
+  const votes_var: VotesArray = Array.from(
+    configDatum.multisig_validator_group.signers
+  ).map((signer) => {
+    const voter: { voter: string; vote: Vote } = {
+      voter: signer,
+      vote: "Pending",
+    };
+    return voter;
+  });
+  console.log(votes_var);
   const datum: GovernanceDatum = {
     proposal_id: fromText(proposalId),
     submitted_by: paymentCredentialOf(address).hash,
@@ -196,7 +212,7 @@ export async function SubmitProposal(
     .mintAssets(proposalAsset, Data.to(redeemer, GovernanceRedeemer))
     .pay.ToContract(
       address,
-      { kind: "inline", value: Data.to(redeemer, GovernanceRedeemer) },
+      { kind: "inline", value: Data.to(datum, GovernanceDatum) },
       { lovelace: 1n, ...proposalAsset }
     )
     .attach.MintingPolicy(validator)
