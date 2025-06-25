@@ -29,13 +29,15 @@ export const VoteSchema = Data.Enum([
 ]);
 export type Vote = Data.Static<typeof VoteSchema>;
 export const Vote = VoteSchema as unknown as Vote;
+// VotesStruct --
+export const VotesStructSchema = Data.Object({
+  voter: Voter,
+  vote: VoteSchema,
+});
+export type VotesStruct = Data.Static<typeof VotesStructSchema>;
+export const VotesStruct = VotesStructSchema as unknown as VotesStruct;
 // VotesArray ---
-export const VotesArraySchema = Data.Array(
-  Data.Object({
-    voter: Voter,
-    vote: VoteSchema,
-  })
-);
+export const VotesArraySchema = Data.Array(VotesStructSchema);
 export type VotesArray = Data.Static<typeof VotesArraySchema>;
 export const VotesArray = VotesArraySchema as unknown as VotesArray;
 
