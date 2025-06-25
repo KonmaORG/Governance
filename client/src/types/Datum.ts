@@ -8,14 +8,14 @@ import {
   Voter,
   VotesArraySchema,
   VotesCountSchema,
-  VotesSchema,
+  WalletSchema,
 } from "./Utils";
 
 export const ConfigDatumSchema = Data.Object({
-  fees_address: Data.Bytes(),
+  fees_address: WalletSchema,
   fees_amount: Data.Integer(),
   fees_asset_class: AssetClassSchema,
-  spend_address: Data.Bytes(),
+  spend_address: WalletSchema,
   categories: Data.Array(Data.Bytes()),
   multisig_validator_group: MultisigSchema,
   multisig_refutxoupdate: MultisigSchema,

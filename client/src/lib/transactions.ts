@@ -6,19 +6,43 @@ import {
   mintingPolicyToId,
   paymentCredentialOf,
   slotToUnixTime,
+  stakeCredentialOf,
+  validatorToAddress,
   type Address,
   type LucidEvolution,
   type Network,
+  type PolicyId,
   type Validator,
 } from "@lucid-evolution/lucid";
 import { script } from "../config/script";
-import { GovernanceRedeemer } from "../types/Redeemer";
-import type { GovernanceDatum } from "../types/Datum";
+import { Action, GovernanceRedeemer } from "../types/Redeemer";
+import { ConfigDatum, type GovernanceDatum } from "../types/Datum";
+import {
+  CATEGORIES,
+  IDENTIFICATION_PID,
+  IDENTIFICATION_TKN,
+} from "../config/constants";
+import type { AssetClass, Multisig } from "../types/Utils";
 
-export async function MintIdentificationToken(lucid: LucidEvolution) {
-  const mint = new Constr(0, []);
-  const redeemer = Data.to(mint);
-
+export async function MintIdentificationToken(
+  lucid: LucidEvolution,
+  address: Address
+) {
+  const utxos = await lucid.utxosAt(address);
+  const orefHash = String(utxos[0].txHash);
+  const orefIndex = BigInt(utxos[0].outputIndex);
+  const oref = new Constr(0, [orefHash, orefIndex]);
+  console.log(oref);
+  const mintingValidator: Validator = {
+    type: "PlutusV3",
+    script: applyParamsToScript(script.IdentificationNft, [oref]),
+  };
+  const policyID = mintingPolicyToId(mintingValidator);
+  const ref_assetName = IDENTIFICATION_TKN;
+  const mintedAssets = { [policyID + fromText(ref_assetName)]: 1n };
+  const mint: Action = "Mint";
+  const redeemer = Data.to(mint, Action);
+  console.log(redeemer, mintedAssets);
   const tx = await lucid
     .newTx()
     .collectFrom([utxos[0]])
@@ -28,11 +52,98 @@ export async function MintIdentificationToken(lucid: LucidEvolution) {
 
   const signed = await tx.sign.withWallet().complete();
   const txHash = await signed.submit();
-  console.log("-----------IdentificationNFT__Mint---------");
+  console.log("-----------IdentificationNFT---------");
   console.log("policyId: ", policyID);
+  return txHash;
 }
 
-export async function AttachConfigDatum(lucid: LucidEvolution) {}
+export async function AttachConfigDatum(lucid: LucidEvolution) {
+  // try {
+  const ref_assetName = IDENTIFICATION_TKN;
+  const karbonAsset = { [IDENTIFICATION_PID + fromText(ref_assetName)]: 1n };
+
+  const configValidator: Validator = {
+    type: "PlutusV3",
+    script: applyParamsToScript(script.ConfigDatumHolder, [
+      IDENTIFICATION_PID as PolicyId,
+    ]),
+  };
+  const configAddress = validatorToAddress(
+    lucid.config().network as Network,
+    configValidator
+  );
+  const daoValidator: Validator = {
+    type: "PlutusV3",
+    script: applyParamsToScript(script.Dao, [IDENTIFICATION_PID as PolicyId]),
+  };
+  const daoPolicyId = mintingPolicyToId(daoValidator);
+  const assestClass: AssetClass = {
+    policy_id: "",
+    asset_name: fromText(""),
+  };
+  const signer: Multisig = {
+    required: 3n,
+    signers: [
+      paymentCredentialOf(
+        "addr_test1qzk08tz3s7xcaxq5q0udh5kpm6fz8vhpd230c07nehtzl5ahaqav4a8stg7sfudah7uxw5g9umv897ppygy559le55tql9690r"
+      ).hash,
+      paymentCredentialOf(
+        "addr_test1qppjp6z53cr6axg59ezf93vlcqqva7wg6d5zfxr5fctnsuveaxzar94mukjwdp323ahhs3tsn0nmawextjtkfztcs20q6fmam2"
+      ).hash,
+      paymentCredentialOf(
+        "addr_test1qzzxrfxg6hq8zerw8g85cvcpxutjtgez5v75rs99kdnn404cfuf2xydw2zrehxmvd3k9nqywe3d6mn64a08ncc5h5s3qd5ewlk"
+      ).hash,
+      paymentCredentialOf(
+        "addr_test1qr3deh8jxn9ejxmuunv6krgtt6q600tt289pkdhg0vrfcvvrm9x488u4tefkkjay9k49yvdwc459uxc2064eulk2raaqjzwsv3"
+      ).hash,
+      paymentCredentialOf(
+        "addr_test1qzs3pj8vvkhu8d7g0p3sfj8896wds459gqcdes04c5fp7pcs2k7ckl5mly9f89s6zpnx9av7qnl59edp0jy2ac6twtmss44zee"
+      ).hash,
+    ],
+  };
+  // scriptHashToCredential
+  const datum: ConfigDatum = {
+    fees_address: {
+      pkh: paymentCredentialOf(
+        "addr_test1qzk08tz3s7xcaxq5q0udh5kpm6fz8vhpd230c07nehtzl5ahaqav4a8stg7sfudah7uxw5g9umv897ppygy559le55tql9690r"
+      ).hash,
+      sc: stakeCredentialOf(
+        "addr_test1qzk08tz3s7xcaxq5q0udh5kpm6fz8vhpd230c07nehtzl5ahaqav4a8stg7sfudah7uxw5g9umv897ppygy559le55tql9690r"
+      ).hash,
+    },
+    fees_amount: 100_000_000n,
+    fees_asset_class: assestClass,
+    spend_address: {
+      pkh: paymentCredentialOf(
+        "addr_test1qzk08tz3s7xcaxq5q0udh5kpm6fz8vhpd230c07nehtzl5ahaqav4a8stg7sfudah7uxw5g9umv897ppygy559le55tql9690r"
+      ).hash,
+      sc: "",
+    }, // need verification form sourabh (how to pass address directly?)
+    categories: CATEGORIES.map((category) => fromText(category)),
+    multisig_validator_group: signer,
+    multisig_refutxoupdate: signer,
+    cet_policyid: IDENTIFICATION_PID,
+    cot_policyId: IDENTIFICATION_PID,
+    dao_policyid: daoPolicyId,
+  };
+  const tx = await lucid
+    .newTx()
+    .pay.ToAddressWithData(
+      configAddress,
+      { kind: "inline", value: Data.to(datum, ConfigDatum) },
+      { lovelace: 5_000_000n, ...karbonAsset }
+    )
+    .complete();
+
+  const signed = await tx.sign.withWallet().complete();
+  const txHash = await signed.submit();
+  console.log("-------ConfigDatum__Deposite------------");
+  console.log(configAddress);
+  return txHash;
+  // } catch (error) {
+  //   console.log(error);
+  // }
+}
 
 export async function SubmitProposal(
   lucid: LucidEvolution,
@@ -43,12 +154,12 @@ export async function SubmitProposal(
     throw new Error("Lucid, proposal, or address is not defined.");
   }
   const configValidator: Validator = {
-    type: "PlutusV2",
+    type: "PlutusV3",
     script: script.ConfigDatumHolder,
   };
   const configPolicyId = mintingPolicyToId(configValidator);
   const validator: Validator = {
-    type: "PlutusV2",
+    type: "PlutusV3",
     script: applyParamsToScript(script.Dao, [configPolicyId]), // config_nft
   };
   const policyId = mintingPolicyToId(validator);

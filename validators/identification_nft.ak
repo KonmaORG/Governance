@@ -16,6 +16,7 @@ use types/redeemer.{Action, Burn, Mint}
 /// ensuring that the minting is a one-time event.
 validator identification_nft(o_ref: OutputReference) {
   mint(redeemer: Action, policy_id: PolicyId, tx: Transaction) {
+    trace @"redeemer": redeemer
     let Transaction { inputs, mint, .. } = tx
     let flatten_value = assets.flatten(mint)
     when redeemer is {

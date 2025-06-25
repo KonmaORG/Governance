@@ -17,7 +17,13 @@ export const MultisigSchema = Data.Object({
 });
 export type Multisig = Data.Static<typeof MultisigSchema>;
 export const Multisig = MultisigSchema as unknown as Multisig;
-
+// Wallet ---
+export const WalletSchema = Data.Object({
+  pkh: Data.Bytes(),
+  sc: Data.Bytes(),
+});
+export type Wallet = Data.Static<typeof WalletSchema>;
+export const Wallet = WalletSchema as unknown as Wallet;
 // Voter ---
 export const Voter = Data.Bytes();
 // Vote ---

@@ -1,6 +1,12 @@
 import { Data } from "@lucid-evolution/lucid";
 import { VoteSchema, Voter } from "./Utils.js";
 
+export const ActionSchema = Data.Enum([
+  Data.Literal("Mint"),
+  Data.Literal("Burn"),
+]);
+export type Action = Data.Static<typeof ActionSchema>;
+export const Action = ActionSchema as unknown as Action;
 // Governance ---
 export const GovernanceRedeemerSchema = Data.Enum([
   // SubmitProposal { proposal_id: ByteArray }

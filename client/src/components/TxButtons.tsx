@@ -1,10 +1,15 @@
 import { useState } from "react";
 import { useCardano } from "../context/CardanoContext";
-import { SubmitProposal } from "../lib/transactions";
+import {
+  AttachConfigDatum,
+  MintIdentificationToken,
+  SubmitProposal,
+} from "../lib/transactions";
 
 export default function TxButtons() {
   const { address, lucid } = useCardano();
   const [proposalId, setProposalId] = useState<string>("");
+  const [result, setResult] = useState<string>("");
   async function ProposalTx(
     proposalType: "Submit" | "Vote" | "Execute" | "Reject"
   ) {
@@ -24,6 +29,16 @@ export default function TxButtons() {
       console.log(`Invalid Proposal Transaction Type...`);
     }
   }
+  async function mintIdentificationToken() {
+    if (!lucid || !address) return;
+    const result = await MintIdentificationToken(lucid, address);
+    setResult(result);
+  }
+  async function attachConfigDatum() {
+    if (!lucid || !address) return;
+    const result = await AttachConfigDatum(lucid);
+    setResult(result);
+  }
   return (
     <>
       <input
@@ -33,6 +48,20 @@ export default function TxButtons() {
         value={proposalId}
         onChange={(e) => setProposalId(e.target.value)}
       />
+      <div className="flex gap-2">
+        <button
+          className="bg-blue-700 p-3 rounded-lg disabled:bg-blue-800"
+          onClick={mintIdentificationToken}
+        >
+          Identification tk
+        </button>
+        <button
+          className="bg-blue-700 p-3 rounded-lg disabled:bg-blue-800"
+          onClick={attachConfigDatum}
+        >
+          Attach Config Datum
+        </button>
+      </div>
       <div className="flex gap-2 ">
         <button
           onClick={() => ProposalTx("Submit")}
@@ -59,6 +88,7 @@ export default function TxButtons() {
           RejectProposal
         </button>
       </div>
+      <p>{result && "result, " + result}</p>
     </>
   );
 }
