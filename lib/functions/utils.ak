@@ -15,7 +15,7 @@ use types/datum.{
   Milestone, ProjectDatum,
 }
 use types/token.{Token}
-use types/utils.{AddressTuple, PaymentKeyHash, StakeKeyHash, Voter, Votes}
+use types/utils.{AddressTuple, PaymentKeyHash, StakeKeyHash, Vote, Voter, Votes}
 use validation/find
 use validation/payout
 
@@ -714,11 +714,11 @@ pub fn governance_datum_from_data(data: Data) -> GovernanceDatum {
 }
 
 // ---
-pub fn get_vote(votes: Votes, voter: Voter) {
+pub fn get_vote(votes: Votes, voter: Voter) -> Vote {
   when votes is {
     [vote, ..rest] ->
       if vote.voter == voter {
-        vote
+        vote.vote
       } else {
         get_vote(rest, voter)
       }

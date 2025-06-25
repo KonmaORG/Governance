@@ -1,12 +1,13 @@
 use aiken/cbor.{serialise}
-use aiken/collection/dict
 use types/datum.{GovernanceDatum}
 use types/moment.{Moment}
 use types/redeemer.{
   ExecuteProposal, GovernanceRedeemer, RejectProposal, SubmitProposal,
   VoteProposal,
 }
-use types/utils.{FeeAmountUpdate, InProgress, Pending, VotesCount, Yes}
+use types/utils.{
+  FeeAmountUpdate, InProgress, Pending, VotesCount, VotesStruct, Yes,
+}
 
 // NOTE: The definitions for `Wallet` and `Moment` types were not found in the
 // project. Therefore, tests for `GovernanceDatum` and the `FeeAddressUpdate`
@@ -24,7 +25,10 @@ const datum_var =
     proposal_id: proposalid,
     submitted_by: pkh1_hex,
     proposal_action: FeeAmountUpdate(1000),
-    votes: dict.from_pairs([Pair(pkh2_hex, Pending), Pair(pkh1_hex, Pending)]),
+    votes: [
+      VotesStruct { voter: pkh2_hex, vote: Pending },
+      VotesStruct { voter: pkh1_hex, vote: Pending },
+    ],
     votes_count: VotesCount { yes: 0, no: 0, abstain: 0 },
     deadline: Moment { start: 0, end: 0 },
     proposal_state: InProgress,

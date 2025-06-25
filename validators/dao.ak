@@ -4,7 +4,6 @@
 //// they can only be executed after the voting period has ended and the proposal has been approved.
 //// It also handles the rejection of proposals that fail to meet the necessary criteria.
 
-use aiken/collection/dict
 use aiken/collection/list
 use cardano/address.{Script}
 use cardano/assets.{PolicyId}
@@ -81,8 +80,8 @@ validator dao(config_nft: PolicyId) {
               datum.proposal_id == self_output_datum.proposal_id,
               datum.proposal_state == InProgress,
               moment.is_contained(datum.deadline, tx.validity_range),
-              Some(Pending) == utils.get_vote(datum.votes, voter),
-              Some(vote) == utils.get_vote(self_output_datum.votes, voter),
+              Pending == utils.get_vote(datum.votes, voter),
+              vote == utils.get_vote(self_output_datum.votes, voter),
               self_output_datum.proposal_state == InProgress,
               when vote is {
                 Yes ->
