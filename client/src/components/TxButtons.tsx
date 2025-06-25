@@ -13,7 +13,14 @@ export default function TxButtons() {
   const [proposalId, setProposalId] = useState<string>("");
   const [result, setResult] = useState<string>("");
   const [vote, setVote] = useState<Vote | null>(null);
-  const [action, setAction] = useState<ProposalAction | null>(null);
+  const [action, setAction] = useState<
+    | "ValidatorAdd"
+    | "ValidatorRemove"
+    | "FeeAmountUpdate"
+    | "FeeAddressUpdate"
+    | null
+  >(null);
+  const [actionValue, setActionValue] = useState<string | null>(null);
   async function ProposalTx(
     proposalType: "Submit" | "Vote" | "Execute" | "Reject"
   ) {
@@ -22,11 +29,19 @@ export default function TxButtons() {
       return;
     }
     if (proposalType === "Submit") {
-      if (!action) {
+      if (!action || !actionValue) {
         console.log("select action");
         return;
       }
-      const result = await SubmitProposal(lucid, proposalId, address, action);
+      const proposalAction: ProposalAction = {
+        [action]: actionValue,
+      };
+      const result = await SubmitProposal(
+        lucid,
+        proposalId,
+        address,
+        proposalAction
+      );
       setResult(result);
     } else if (proposalType === "Vote") {
       if (!vote) {
@@ -76,7 +91,25 @@ export default function TxButtons() {
         value={proposalId}
         onChange={(e) => setProposalId(e.target.value)}
       />
-      setAction
+      <div>
+        setAction
+        <select
+          value={action}
+          onChange={(e) => setAction(e.target.value as ProposalAction)}
+          className="text-black bg-green-800"
+        >
+          <option value="ValidatorRemove">Validator Remove</option>
+          <option value="ValidatorAdd">Validator Add</option>
+          <option value="FeeAmountUpdate">Fee Amount Update</option>
+          <option value="FeeAddressUpdate">Fee Address Update</option>
+        </select>
+        <input
+          type="text"
+          placeholder="value"
+          className="p-3 rounded-lg border-2 border-green-700"
+          // value={action}  // onChange={(e) => setAction(e.target.value)}
+        />
+      </div>
       <div className="flex gap-2 ">
         <button
           onClick={() => ProposalTx("Submit")}
