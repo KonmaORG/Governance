@@ -259,8 +259,8 @@ export async function VoteProposal(
     },
   };
   const unit = policyId + fromText(proposalId);
-  const utxo = await lucid.utxoByUnit(unit);
-  const data = await lucid.datumOf(utxo);
+  const proposalUTXO = await lucid.utxoByUnit(unit);
+  const data = await lucid.datumOf(proposalUTXO);
   const oldDatum = Data.castFrom(data, GovernanceDatum);
   const updatedVotes = oldDatum.votes.map((voterEntry) =>
     voterEntry.voter === paymentCredentialOf(address).hash
@@ -287,7 +287,7 @@ export async function VoteProposal(
   const tx = await lucid
     .newTx()
     .readFrom([configDatumUtxo])
-    .collectFrom([], Data.to(redeemer, GovernanceRedeemer))
+    .collectFrom([proposalUTXO], Data.to(redeemer, GovernanceRedeemer))
     .pay.ToContract(
       validatorAddress,
       { kind: "inline", value: Data.to(datum, GovernanceDatum) },
