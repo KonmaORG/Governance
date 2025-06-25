@@ -192,7 +192,7 @@ validator dao(config_nft: PolicyId) {
         // output datum proposal_id must match the proposal_id from redeemer
         // output datum proposal_state must be InProgress
         // output must be going to a script address
-
+        trace @"started"
         let output = utils.output_by_nft(tx.outputs, policy_id, proposal_id)
         let datum = {
           expect InlineDatum(data) = output.datum
@@ -200,11 +200,13 @@ validator dao(config_nft: PolicyId) {
         }
         // TODO: configDatum.daoMember must match the datum.votes list.
         // TODO: votes_count must be 0 for yes, no, abstain
+        trace @"Script(policy_id)-----": Script(policy_id)
+        trace @"----paymentCredential": output.address.payment_credential
         and {
-          list.has(tx.extra_signatories, datum.submitted_by),
-          datum.proposal_id == proposal_id,
-          datum.proposal_state == InProgress,
-          output.address.payment_credential == Script(policy_id),
+          list.has(tx.extra_signatories, datum.submitted_by)?,
+          (datum.proposal_id == proposal_id)?,
+          (datum.proposal_state == InProgress)?,
+          (output.address.payment_credential == Script(policy_id))?,
         }
       }
       _ -> fail @"Invalid Redeemer: only SubmitProposal is allowed in minting"

@@ -169,6 +169,10 @@ export async function SubmitProposal(
     script: applyParamsToScript(script.Dao, [configPolicyId]), // config_nft
   };
   const policyId = mintingPolicyToId(validator);
+  const validatorAddress = validatorToAddress(
+    lucid.config().network as Network,
+    validator
+  );
   // mintingPolicyToId()
   const proposalAsset = { [policyId + fromText(proposalId)]: 1n };
   const redeemer: GovernanceRedeemer = {
@@ -191,7 +195,6 @@ export async function SubmitProposal(
     };
     return voter;
   });
-  console.log(votes_var);
   const datum: GovernanceDatum = {
     proposal_id: fromText(proposalId),
     submitted_by: paymentCredentialOf(address).hash,
@@ -211,7 +214,7 @@ export async function SubmitProposal(
     .newTx()
     .mintAssets(proposalAsset, Data.to(redeemer, GovernanceRedeemer))
     .pay.ToContract(
-      address,
+      validatorAddress,
       { kind: "inline", value: Data.to(datum, GovernanceDatum) },
       { lovelace: 1n, ...proposalAsset }
     )
