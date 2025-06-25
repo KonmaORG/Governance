@@ -72,7 +72,6 @@ validator dao(config_nft: PolicyId) {
           // 1. The proposal ID must remain unchanged.
           // 2. The proposal must be in the 'InProgress' state to allow voting.
           // 3. The vote must be cast before the proposal's deadline.
-          // 4. The voter must be in the list of eligible voters.
           // 5. The voter must not have already voted (their status must be 'Pending').
           // 6. The output datum must correctly reflect the new vote cast by the voter.
           // 7. The proposal state must remain 'InProgress' after the vote.
@@ -82,9 +81,8 @@ validator dao(config_nft: PolicyId) {
               datum.proposal_id == self_output_datum.proposal_id,
               datum.proposal_state == InProgress,
               moment.is_contained(datum.deadline, tx.validity_range),
-              dict.has_key(datum.votes, voter),
-              Some(Pending) == dict.get(datum.votes, voter),
-              Some(vote) == dict.get(self_output_datum.votes, voter),
+              Some(Pending) == utils.get_vote(datum.votes, voter),
+              Some(vote) == utils.get_vote(self_output_datum.votes, voter),
               self_output_datum.proposal_state == InProgress,
               when vote is {
                 Yes ->

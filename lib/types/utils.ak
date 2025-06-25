@@ -1,4 +1,3 @@
-use aiken/collection/dict.{Dict}
 use aiken/crypto.{VerificationKeyHash}
 use cardano/assets.{AssetName, PolicyId}
 use types/wallet.{Wallet}
@@ -86,5 +85,10 @@ pub type ProposalAction {
 }
 
 /// A type alias for a dictionary that maps voters to their votes on a proposal.
+pub type VotesStruct {
+  voter: Voter,
+  vote: Vote,
+}
+
 pub type Votes =
-  Dict<Voter, Vote>
+  List<VotesStruct>
