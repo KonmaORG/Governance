@@ -198,6 +198,8 @@ validator dao(config_nft: PolicyId) {
           expect InlineDatum(data) = output.datum
           utils.governance_datum_from_data(data)
         }
+        // TODO: configDatum.daoMember must match the datum.votes list.
+        // TODO: votes_count must be 0 for yes, no, abstain
         and {
           list.has(tx.extra_signatories, datum.submitted_by),
           datum.proposal_id == proposal_id,

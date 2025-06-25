@@ -6,6 +6,7 @@ import {
   type WalletApi,
 } from "@lucid-evolution/lucid";
 import { useCardano } from "./context/CardanoContext";
+import TxButtons from "./components/TxButtons";
 type Wallet = {
   name: string;
   icon: string;
@@ -67,32 +68,7 @@ function App() {
           <button className="bg-red-700 p-3 rounded-lg" onClick={disconnect}>
             disconnect
           </button>
-          <div className="flex gap-2 ">
-            <button
-              disabled
-              className="bg-green-700 p-3 rounded-lg disabled:bg-green-800"
-            >
-              SubmitProposal
-            </button>
-            <button
-              disabled
-              className="bg-green-700 p-3 rounded-lg disabled:bg-green-800"
-            >
-              VoteProposal
-            </button>
-            <button
-              disabled
-              className="bg-green-700 p-3 rounded-lg disabled:bg-green-800"
-            >
-              ExecuteProposal
-            </button>
-            <button
-              disabled
-              className="bg-green-700 p-3 rounded-lg disabled:bg-green-800"
-            >
-              RejectProposal
-            </button>
-          </div>
+          <TxButtons />
         </div>
       )}
     </>
