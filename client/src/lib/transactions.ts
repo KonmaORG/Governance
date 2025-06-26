@@ -198,7 +198,7 @@ export async function SubmitProposal(
     slotToUnixTime(lucid.config().network as Network, lucid.currentSlot())
   );
   // console.log(emulator.now(), proposalStart);
-  const proposalEnd = proposalStart + BigInt(60 * 60 * 24 * 30 * 1000); // 30 days
+  const proposalEnd = proposalStart + BigInt(180 * 1000); // (60 * 60 * 24 * 30 * 1000); // 30 days
   const configDatum = await refConfigDatum(lucid);
   const votes_var: VotesArray = Array.from(
     configDatum.multisig_validator_group.signers
@@ -223,7 +223,6 @@ export async function SubmitProposal(
   //  redeemer includes the proposal_id SubmitProposal{proposal_id}
   //  send the asset and datum to script address
   //  signed by the submitter
-
   const tx = await lucid
     .newTx()
     .mintAssets(proposalAsset, Data.to(redeemer, GovernanceRedeemer))
@@ -326,10 +325,11 @@ export async function ExecuteProposal(
 ) {
   const ref_assetName = IDENTIFICATION_TKN;
   const karbonAsset = { [IDENTIFICATION_PID + fromText(ref_assetName)]: 1n };
-
   const configValidator: Validator = {
     type: "PlutusV3",
-    script: script.ConfigDatumHolder,
+    script: applyParamsToScript(script.ConfigDatumHolder, [
+      IDENTIFICATION_PID as PolicyId,
+    ]),
   };
   const configPolicyId = mintingPolicyToId(configValidator);
   const configAddress = validatorToAddress(
@@ -349,7 +349,7 @@ export async function ExecuteProposal(
   const proposalAsset = { [policyId + fromText(proposalId)]: 1n };
   const configDatumUtxo = await refConfigUtxo(lucid);
   const oldConfigDatum = await refConfigDatum(lucid);
-  const configRedeemer = proposalId;
+  const configRedeemer = fromText(proposalId);
   const redeemer: GovernanceRedeemer = {
     ExecuteProposal: {
       proposal_id: fromText(proposalId),
@@ -357,13 +357,14 @@ export async function ExecuteProposal(
   };
   const unit = policyId + fromText(proposalId);
   const proposalUTXO = await lucid.utxoByUnit(unit);
+  console.log("redeemer: ", proposalUTXO);
   const data = await lucid.datumOf(proposalUTXO);
   const oldDatum = Data.castFrom(data, GovernanceDatum);
   const datum: GovernanceDatum = {
     ...oldDatum,
     proposal_state: "Executed",
   };
-
+  console.log("datum: ", datum);
   const action = datum.proposal_action;
   const updatedConfigDatum: ConfigDatum = {
     ...oldConfigDatum,
@@ -393,7 +394,7 @@ export async function ExecuteProposal(
           }
         : oldConfigDatum.multisig_validator_group,
   };
-  console.log("updatedConfigDatum", updatedConfigDatum);
+  console.log("(.......");
   const tx = await lucid
     .newTx()
     .collectFrom([configDatumUtxo], Data.to(configRedeemer))

@@ -61,6 +61,12 @@ function App() {
           <button className="bg-slate-700 p-3 rounded-lg" onClick={awaitBlock}>
             await block
           </button>
+          <button
+            className="bg-slate-700 p-3 rounded-lg"
+            onClick={() => emulator.log()}
+          >
+            Log
+          </button>
         </div>
         <TxButtons />
       </div>
