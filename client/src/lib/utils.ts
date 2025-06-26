@@ -6,6 +6,7 @@ import {
   IDENTIFICATION_TKN,
 } from "../config/constants";
 import { ConfigDatum } from "../types/Datum";
+import { toast } from "sonner";
 
 export async function refConfigUtxo(lucid: LucidEvolution) {
   const unit = IDENTIFICATION_PID + fromText(IDENTIFICATION_TKN);
@@ -43,3 +44,73 @@ export const blockfrost = {
     }
   },
 };
+
+export function handleSuccess(success: any) {
+  toast.success(`${success}`);
+  console.log(success);
+}
+
+export function handleError(error: any) {
+  const { info, message } = error;
+  const errorMessage = `${message}`;
+
+  try {
+    // KoiosError:
+    const a = errorMessage.indexOf("{", 1);
+    const b =
+      errorMessage.lastIndexOf("}", errorMessage.lastIndexOf("}") - 1) + 1;
+
+    const rpc = errorMessage.slice(a, b);
+    const jsonrpc = JSON.parse(rpc);
+
+    const errorData = jsonrpc.error.data[0].error.data;
+    try {
+      const { validationError, traces } = errorData;
+
+      toast.error(`${validationError} Traces: ${traces.join(", ")}.`);
+      console.error({ [validationError]: traces });
+    } catch {
+      const { reason } = errorData;
+
+      toast.error(`${reason}`);
+      console.error(reason);
+    }
+  } catch {
+    function toJSON(error: any) {
+      try {
+        const errorString = JSON.stringify(error);
+        const errorJSON = JSON.parse(errorString);
+        return errorJSON;
+      } catch {
+        return {};
+      }
+    }
+
+    const { cause } = toJSON(error);
+    const { failure } = cause ?? {};
+
+    const failureCause = failure?.cause;
+
+    let failureTrace: string | undefined;
+    try {
+      failureTrace = eval(failureCause).replaceAll(" Trace ", " \n ");
+    } catch {
+      failureTrace = undefined;
+    }
+
+    const failureInfo = failureCause?.info;
+    const failureMessage = failureCause?.message;
+
+    toast.error(
+      `${
+        failureTrace ??
+        failureInfo ??
+        failureMessage ??
+        info ??
+        message ??
+        error
+      }`
+    );
+    console.error(failureCause ?? { error });
+  }
+}
