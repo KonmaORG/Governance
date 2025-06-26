@@ -4,6 +4,7 @@ import {
   AttachConfigDatum,
   ExecuteProposal,
   MintIdentificationToken,
+  RejectProposal,
   SubmitProposal,
   VoteProposal,
 } from "../lib/transactions";
@@ -115,7 +116,8 @@ export default function TxButtons() {
       const result = await ExecuteProposal(lucid, proposalId, address);
       setResult(result);
     } else if (proposalType === "Reject") {
-      console.log(`Executing ${proposalType} Proposal Transaction...`);
+      const result = await RejectProposal(lucid, proposalId, address);
+      setResult(result);
     } else {
       console.log(`Invalid Proposal Transaction Type...`);
     }

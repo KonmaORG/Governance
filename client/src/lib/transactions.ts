@@ -416,6 +416,56 @@ export async function ExecuteProposal(
     )
     .attach.SpendingValidator(configValidator)
     .attach.SpendingValidator(validator)
+    .validFrom(Number(oldDatum.deadline.end) + 1000) //exclusivity onchain
+    .addSigner(address)
+    .complete();
+
+  const signedTx = await tx.sign.withWallet().complete();
+  const txHash = await signedTx.submit();
+
+  return txHash;
+}
+
+export async function RejectProposal(
+  lucid: LucidEvolution,
+  proposalId: string,
+  address: Address
+) {
+  const validator: Validator = {
+    type: "PlutusV3",
+    script: applyParamsToScript(script.Dao, [IDENTIFICATION_PID as PolicyId]), // config_nft
+  };
+  const policyId = mintingPolicyToId(validator);
+  const validatorAddress = validatorToAddress(
+    lucid.config().network as Network,
+    validator
+  );
+  // mintingPolicyToId()
+  const proposalAsset = { [policyId + fromText(proposalId)]: 1n };
+  const redeemer: GovernanceRedeemer = {
+    RejectProposal: {
+      proposal_id: fromText(proposalId),
+    },
+  };
+  const unit = policyId + fromText(proposalId);
+  const proposalUTXO = await lucid.utxoByUnit(unit);
+
+  const data = await lucid.datumOf(proposalUTXO);
+  const oldDatum = Data.castFrom(data, GovernanceDatum);
+  const datum: GovernanceDatum = {
+    ...oldDatum,
+    proposal_state: "Rejected",
+  };
+
+  const tx = await lucid
+    .newTx()
+    .collectFrom([proposalUTXO], Data.to(redeemer, GovernanceRedeemer))
+    .pay.ToContract(
+      validatorAddress,
+      { kind: "inline", value: Data.to(datum, GovernanceDatum) },
+      { lovelace: 1n, ...proposalAsset }
+    )
+    .attach.SpendingValidator(validator)
     .validFrom(Number(oldDatum.deadline.end))
     .addSigner(address)
     .complete();
