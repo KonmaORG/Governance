@@ -79,6 +79,27 @@ export function datumData() {
     "\n executeProposal",
     Data.to(executeProposal, GovernanceRedeemer).toUpperCase(),
     "\n rejectProposal",
-    Data.to(rejectProposal, GovernanceRedeemer).toUpperCase()
+    Data.to(rejectProposal, GovernanceRedeemer).toUpperCase(),
+    "\n Feeaddress",
+    Data.to(
+      { FeeAddressUpdate: [{ pkh: pkh1_hex, sc: pkh2_hex }] },
+      ProposalAction
+    ).toUpperCase()
   );
 }
+
+// TEST FOR this
+// export const ProposalActionSchema = Data.Enum([
+//   Data.Object({
+//     ValidatorAdd: Data.Tuple([Data.Bytes()]),
+//   }),
+//   Data.Object({
+//     ValidatorRemove: Data.Tuple([Data.Bytes()]),
+//   }),
+//   Data.Object({
+//     FeeAmountUpdate: Data.Tuple([Data.Integer()]),
+//   }),
+//   Data.Object({
+//     FeeAddressUpdate: Data.Tuple([WalletSchema]),
+//   }),
+// ]);

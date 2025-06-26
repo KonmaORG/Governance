@@ -92,7 +92,7 @@ export const ProposalActionSchema = Data.Enum([
     FeeAmountUpdate: Data.Tuple([Data.Integer()]),
   }),
   Data.Object({
-    FeeAddressUpdate: Data.Tuple([Data.Bytes()]),
+    FeeAddressUpdate: Data.Tuple([WalletSchema]),
   }),
 ]);
 export type ProposalAction = Data.Static<typeof ProposalActionSchema>;

@@ -6,8 +6,10 @@ use types/redeemer.{
   VoteProposal,
 }
 use types/utils.{
-  FeeAmountUpdate, InProgress, Pending, VotesCount, VotesStruct, Yes,
+  FeeAddressUpdate, FeeAmountUpdate, InProgress, Pending, VotesCount,
+  VotesStruct, Yes,
 }
+use types/wallet.{Wallet}
 
 // NOTE: The definitions for `Wallet` and `Moment` types were not found in the
 // project. Therefore, tests for `GovernanceDatum` and the `FeeAddressUpdate`
@@ -33,6 +35,8 @@ const datum_var =
     deadline: Moment { start: 0, end: 0 },
     proposal_state: InProgress,
   }
+
+const feeaddress = FeeAddressUpdate(Wallet { pkh: pkh1_hex, sc: pkh2_hex })
 
 const submit_proposal: GovernanceRedeemer =
   SubmitProposal { proposal_id: proposalid }
@@ -71,5 +75,6 @@ test datum() {
   // -----ENTIRE DATUM AS CBOR-----
   trace @"------------------DATUM AS CBOR-----------------"
   trace @"datum_var": serialise(datum_var)
+  trace @"feeAddress": serialise(feeaddress)
   True
 }
