@@ -1,75 +1,78 @@
+// non Emulator
 import "./App.css";
 import {
+  Blockfrost,
   Lucid,
-  type EmulatorAccount,
   // type LucidEvolution,
+  type WalletApi,
 } from "@lucid-evolution/lucid";
 import { useCardano } from "./context/CardanoContext";
 import TxButtons from "./components/TxButtons";
-import {
-  accountA,
-  accountB,
-  accountC,
-  accountD,
-  emulator,
-} from "./lib/emulator";
-
+import { BF_PID, BF_URL } from "./config/constants";
+type Wallet = {
+  name: string;
+  icon: string;
+  apiVersion: string;
+  enable(): Promise<WalletApi>;
+  isEnabled(): Promise<boolean>;
+};
 function App() {
-  function getWallets(): EmulatorAccount[] {
-    const wallets: EmulatorAccount[] = [accountA, accountB, accountC, accountD];
-    return wallets;
+  function getWallets(): Wallet[] {
+    const wallets: Wallet[] = [];
+    const cardano = (window as any).cardano;
+
+    for (const c in cardano) {
+      const wallet = cardano[c];
+
+      if (!wallet.apiVersion) continue;
+
+      wallets.push(wallet);
+    }
+
+    return wallets.sort((l, r) => {
+      return l.name.toUpperCase() < r.name.toUpperCase() ? -1 : 1;
+    });
   }
 
   const wallets = getWallets();
   // const [lucid, setLucid] = useState<LucidEvolution | null>(null);
   const { address, setCardano } = useCardano();
-  async function connectWallet(account: EmulatorAccount) {
-    const lucidInstance = await Lucid(emulator, "Custom");
-    lucidInstance.selectWallet.fromSeed(account.seedPhrase);
-    const address = await lucidInstance.wallet().address();
-    setCardano((prev) => ({ ...prev, lucid: lucidInstance, address }));
+  async function connectWallet(wallet: Wallet) {
+    const [api, lucid] = await Promise.all([
+      wallet.enable(),
+      Lucid(new Blockfrost(BF_URL, BF_PID), "Preview"),
+    ]);
+    lucid.selectWallet.fromAPI(api);
+
+    const address = await lucid.wallet().address();
+    setCardano((prev) => ({ ...prev, lucid, address }));
   }
   function disconnect() {
     setCardano({});
   }
-  const awaitBlock = () => {
-    emulator.awaitBlock();
-    console.log("awaited block");
-    console.log("current block height: ", emulator.blockHeight);
-  };
 
   return (
     <>
-      <div className="flex justify-center items-center gap-2 w-full mx-auto">
-        {wallets.map((wallet, w) => (
+      {wallets.length === 0 && "No wallets found."}
+      {!address ? (
+        wallets.map((wallet, w) => (
           <button
             key={`wallet.${w}`}
             className="bg-green-700 p-3 rounded-lg"
             onClick={() => connectWallet(wallet)}
           >
-            {wallet.address.slice(0, 8)}...{wallet.address.slice(-8)}
+            {wallet.name}
           </button>
-        ))}
-      </div>
-
-      <div className="flex flex-col items-center gap-2 w-full mx-auto">
-        <p>Address: {address}</p>
-        <div className="flex gap-2">
+        ))
+      ) : (
+        <div className="flex flex-col items-center gap-2">
+          <p>Address: {address}</p>
           <button className="bg-red-700 p-3 rounded-lg" onClick={disconnect}>
             disconnect
           </button>
-          <button className="bg-slate-700 p-3 rounded-lg" onClick={awaitBlock}>
-            await block
-          </button>
-          <button
-            className="bg-slate-700 p-3 rounded-lg"
-            onClick={() => emulator.log()}
-          >
-            Log
-          </button>
+          <TxButtons />
         </div>
-        <TxButtons />
-      </div>
+      )}
     </>
   );
 }

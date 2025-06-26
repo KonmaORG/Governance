@@ -31,7 +31,7 @@ import {
   type AssetClass,
   type Multisig,
 } from "../types/Utils";
-import { refConfigDatum, refConfigUtxo } from "./utils";
+import { blockfrost, refConfigDatum, refConfigUtxo } from "./utils";
 import { accountA, accountB, accountC, accountD, emulator } from "./emulator";
 
 export async function MintIdentificationToken(
@@ -92,35 +92,35 @@ export async function AttachConfigDatum(lucid: LucidEvolution) {
     policy_id: "",
     asset_name: fromText(""),
   };
-  // const signer: Multisig = {
-  //   required: 3n,
-  //   signers: [
-  //     paymentCredentialOf(
-  //       "addr_test1qzk08tz3s7xcaxq5q0udh5kpm6fz8vhpd230c07nehtzl5ahaqav4a8stg7sfudah7uxw5g9umv897ppygy559le55tql9690r"
-  //     ).hash,
-  //     paymentCredentialOf(
-  //       "addr_test1qppjp6z53cr6axg59ezf93vlcqqva7wg6d5zfxr5fctnsuveaxzar94mukjwdp323ahhs3tsn0nmawextjtkfztcs20q6fmam2"
-  //     ).hash,
-  //     paymentCredentialOf(
-  //       "addr_test1qzzxrfxg6hq8zerw8g85cvcpxutjtgez5v75rs99kdnn404cfuf2xydw2zrehxmvd3k9nqywe3d6mn64a08ncc5h5s3qd5ewlk"
-  //     ).hash,
-  //     paymentCredentialOf(
-  //       "addr_test1qr3deh8jxn9ejxmuunv6krgtt6q600tt289pkdhg0vrfcvvrm9x488u4tefkkjay9k49yvdwc459uxc2064eulk2raaqjzwsv3"
-  //     ).hash,
-  //     paymentCredentialOf(
-  //       "addr_test1qzs3pj8vvkhu8d7g0p3sfj8896wds459gqcdes04c5fp7pcs2k7ckl5mly9f89s6zpnx9av7qnl59edp0jy2ac6twtmss44zee"
-  //     ).hash,
-  //   ],
-  // };
   const signer: Multisig = {
     required: 3n,
     signers: [
-      paymentCredentialOf(accountA.address).hash,
-      paymentCredentialOf(accountB.address).hash,
-      paymentCredentialOf(accountC.address).hash,
-      paymentCredentialOf(accountD.address).hash,
+      paymentCredentialOf(
+        "addr_test1qzk08tz3s7xcaxq5q0udh5kpm6fz8vhpd230c07nehtzl5ahaqav4a8stg7sfudah7uxw5g9umv897ppygy559le55tql9690r"
+      ).hash,
+      paymentCredentialOf(
+        "addr_test1qppjp6z53cr6axg59ezf93vlcqqva7wg6d5zfxr5fctnsuveaxzar94mukjwdp323ahhs3tsn0nmawextjtkfztcs20q6fmam2"
+      ).hash,
+      paymentCredentialOf(
+        "addr_test1qzzxrfxg6hq8zerw8g85cvcpxutjtgez5v75rs99kdnn404cfuf2xydw2zrehxmvd3k9nqywe3d6mn64a08ncc5h5s3qd5ewlk"
+      ).hash,
+      paymentCredentialOf(
+        "addr_test1qr3deh8jxn9ejxmuunv6krgtt6q600tt289pkdhg0vrfcvvrm9x488u4tefkkjay9k49yvdwc459uxc2064eulk2raaqjzwsv3"
+      ).hash,
+      paymentCredentialOf(
+        "addr_test1qzs3pj8vvkhu8d7g0p3sfj8896wds459gqcdes04c5fp7pcs2k7ckl5mly9f89s6zpnx9av7qnl59edp0jy2ac6twtmss44zee"
+      ).hash,
     ],
   };
+  // const signer: Multisig = {
+  //   required: 3n,
+  //   signers: [
+  //     paymentCredentialOf(accountA.address).hash,
+  //     paymentCredentialOf(accountB.address).hash,
+  //     paymentCredentialOf(accountC.address).hash,
+  //     paymentCredentialOf(accountD.address).hash,
+  //   ],
+  // };
   // scriptHashToCredential
   const datum: ConfigDatum = {
     fees_address: {
@@ -201,7 +201,7 @@ export async function SubmitProposal(
     slotToUnixTime(lucid.config().network as Network, lucid.currentSlot())
   );
   // console.log(emulator.now(), proposalStart);
-  const proposalEnd = proposalStart + BigInt(180 * 1000); //(60 * 60 * 24 * 30 * 1000); // 30 days //(180 * 1000); //
+  const proposalEnd = proposalStart + BigInt(30 * 60 * 1000); //(60 * 60 * 24 * 30 * 1000); // 30 days //(180 * 1000); //
   const configDatum = await refConfigDatum(lucid);
   const votes_var: VotesArray = Array.from(
     configDatum.multisig_validator_group.signers
@@ -256,7 +256,7 @@ export async function VoteProposal(
       IDENTIFICATION_PID as PolicyId,
     ]),
   };
-  const configPolicyId = mintingPolicyToId(configValidator);
+  const date = await blockfrost.getLatestTime();
   const validator: Validator = {
     type: "PlutusV3",
     script: applyParamsToScript(script.Dao, [IDENTIFICATION_PID as PolicyId]), // config_nft
@@ -301,6 +301,7 @@ export async function VoteProposal(
           : oldDatum.votes_count.abstain,
     },
   };
+
   const tx = await lucid
     .newTx()
     .readFrom([configDatumUtxo])
@@ -311,9 +312,7 @@ export async function VoteProposal(
       { lovelace: 1n, ...proposalAsset }
     )
     .attach.MintingPolicy(validator)
-    .validFrom(
-      slotToUnixTime(lucid.config().network as Network, lucid.currentSlot())
-    )
+    .validFrom(date)
     .validTo(Number(oldDatum.deadline.end) - 10000)
     .addSigner(address)
     .complete();
@@ -329,6 +328,7 @@ export async function ExecuteProposal(
   proposalId: string,
   address: Address
 ) {
+  const date = await blockfrost.getLatestTime();
   const ref_assetName = IDENTIFICATION_TKN;
   const karbonAsset = { [IDENTIFICATION_PID + fromText(ref_assetName)]: 1n };
   const configValidator: Validator = {
@@ -417,7 +417,7 @@ export async function ExecuteProposal(
     )
     .attach.SpendingValidator(configValidator)
     .attach.SpendingValidator(validator)
-    .validFrom(Number(oldDatum.deadline.end) + 1000) //exclusivity onchain
+    .validFrom(date) //exclusivity onchain
     .addSigner(address)
     .complete();
 
@@ -432,6 +432,7 @@ export async function RejectProposal(
   proposalId: string,
   address: Address
 ) {
+  const date = await blockfrost.getLatestTime();
   const validator: Validator = {
     type: "PlutusV3",
     script: applyParamsToScript(script.Dao, [IDENTIFICATION_PID as PolicyId]), // config_nft
@@ -467,7 +468,7 @@ export async function RejectProposal(
       { lovelace: 1n, ...proposalAsset }
     )
     .attach.SpendingValidator(validator)
-    .validFrom(Number(datum.deadline.end) + 1000)
+    .validFrom(date)
     .addSigner(address)
     .complete();
 
