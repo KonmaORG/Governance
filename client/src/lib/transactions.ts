@@ -7,7 +7,6 @@ import {
   paymentCredentialOf,
   slotToUnixTime,
   stakeCredentialOf,
-  unixTimeToSlot,
   validatorToAddress,
   type Address,
   type LucidEvolution,
@@ -32,7 +31,6 @@ import {
   type Multisig,
 } from "../types/Utils";
 import { blockfrost, refConfigDatum, refConfigUtxo } from "./utils";
-import { accountA, accountB, accountC, accountD, emulator } from "./emulator";
 
 export async function MintIdentificationToken(
   lucid: LucidEvolution,
@@ -173,13 +171,6 @@ export async function SubmitProposal(
   if (!lucid || !proposalId || !address) {
     throw new Error("Lucid, proposal, or address is not defined.");
   }
-  const configValidator: Validator = {
-    type: "PlutusV3",
-    script: applyParamsToScript(script.ConfigDatumHolder, [
-      IDENTIFICATION_PID as PolicyId,
-    ]),
-  };
-  const configPolicyId = mintingPolicyToId(configValidator);
   const validator: Validator = {
     type: "PlutusV3",
     script: applyParamsToScript(script.Dao, [IDENTIFICATION_PID as PolicyId]), // config_nft
@@ -250,12 +241,6 @@ export async function VoteProposal(
   address: Address,
   vote: Vote
 ) {
-  const configValidator: Validator = {
-    type: "PlutusV3",
-    script: applyParamsToScript(script.ConfigDatumHolder, [
-      IDENTIFICATION_PID as PolicyId,
-    ]),
-  };
   const date = await blockfrost.getLatestTime();
   const validator: Validator = {
     type: "PlutusV3",
@@ -337,7 +322,6 @@ export async function ExecuteProposal(
       IDENTIFICATION_PID as PolicyId,
     ]),
   };
-  const configPolicyId = mintingPolicyToId(configValidator);
   const configAddress = validatorToAddress(
     lucid.config().network as Network,
     configValidator
