@@ -7,6 +7,7 @@ import {
   paymentCredentialOf,
   slotToUnixTime,
   stakeCredentialOf,
+  unixTimeToSlot,
   validatorToAddress,
   type Address,
   type LucidEvolution,
@@ -31,7 +32,7 @@ import {
   type Multisig,
 } from "../types/Utils";
 import { refConfigDatum, refConfigUtxo } from "./utils";
-import { accountA, accountB, accountC, accountD } from "./emulator";
+import { accountA, accountB, accountC, accountD, emulator } from "./emulator";
 
 export async function MintIdentificationToken(
   lucid: LucidEvolution,
@@ -466,7 +467,7 @@ export async function RejectProposal(
       { lovelace: 1n, ...proposalAsset }
     )
     .attach.SpendingValidator(validator)
-    .validFrom(Number(oldDatum.deadline.end))
+    .validFrom(Number(datum.deadline.end) + 1000)
     .addSigner(address)
     .complete();
 
