@@ -32,8 +32,10 @@ validator config_datum_holder(_config_nft: PolicyId) {
     //    implemented.
     when datum is {
       Some(datum) -> {
+        trace @"-----------------\n dao Policy": datum.dao_policyid, proposal_id
         let dao_input =
           find.input_by_nft(tx.inputs, datum.dao_policyid, proposal_id)
+        trace @"dao input found"
         let dao_output =
           lib.output_by_nft(tx.outputs, datum.dao_policyid, proposal_id)
         let input_governance_datum = {

@@ -41,7 +41,7 @@ export async function MintIdentificationToken(
   const orefHash = String(utxos[0].txHash);
   const orefIndex = BigInt(utxos[0].outputIndex);
   const oref = new Constr(0, [orefHash, orefIndex]);
-  console.log(oref);
+
   const mintingValidator: Validator = {
     type: "PlutusV3",
     script: applyParamsToScript(script.IdentificationNft, [oref]),
@@ -51,7 +51,7 @@ export async function MintIdentificationToken(
   const mintedAssets = { [policyID + fromText(ref_assetName)]: 1n };
   const mint: Action = "Mint";
   const redeemer = Data.to(mint, Action);
-  console.log(redeemer, mintedAssets);
+
   const tx = await lucid
     .newTx()
     .collectFrom([utxos[0]])
@@ -86,6 +86,7 @@ export async function AttachConfigDatum(lucid: LucidEvolution) {
     script: applyParamsToScript(script.Dao, [IDENTIFICATION_PID as PolicyId]),
   };
   const daoPolicyId = mintingPolicyToId(daoValidator);
+  console.log(daoPolicyId);
   const assestClass: AssetClass = {
     policy_id: "",
     asset_name: fromText(""),
@@ -155,8 +156,7 @@ export async function AttachConfigDatum(lucid: LucidEvolution) {
 
   const signed = await tx.sign.withWallet().complete();
   const txHash = await signed.submit();
-  console.log("-------ConfigDatum__Deposite------------");
-  console.log(configAddress);
+
   return txHash;
   // } catch (error) {
   //   console.log(error);
@@ -181,7 +181,7 @@ export async function SubmitProposal(
   const configPolicyId = mintingPolicyToId(configValidator);
   const validator: Validator = {
     type: "PlutusV3",
-    script: applyParamsToScript(script.Dao, [configPolicyId]), // config_nft
+    script: applyParamsToScript(script.Dao, [IDENTIFICATION_PID as PolicyId]), // config_nft
   };
   const policyId = mintingPolicyToId(validator);
   const validatorAddress = validatorToAddress(
@@ -258,7 +258,7 @@ export async function VoteProposal(
   const configPolicyId = mintingPolicyToId(configValidator);
   const validator: Validator = {
     type: "PlutusV3",
-    script: applyParamsToScript(script.Dao, [configPolicyId]), // config_nft
+    script: applyParamsToScript(script.Dao, [IDENTIFICATION_PID as PolicyId]), // config_nft
   };
   const policyId = mintingPolicyToId(validator);
   const validatorAddress = validatorToAddress(
@@ -343,7 +343,7 @@ export async function ExecuteProposal(
   );
   const validator: Validator = {
     type: "PlutusV3",
-    script: applyParamsToScript(script.Dao, [configPolicyId]), // config_nft
+    script: applyParamsToScript(script.Dao, [IDENTIFICATION_PID as PolicyId]), // config_nft
   };
   const policyId = mintingPolicyToId(validator);
   const validatorAddress = validatorToAddress(
@@ -362,14 +362,14 @@ export async function ExecuteProposal(
   };
   const unit = policyId + fromText(proposalId);
   const proposalUTXO = await lucid.utxoByUnit(unit);
-  console.log("redeemer: ", proposalUTXO);
+
   const data = await lucid.datumOf(proposalUTXO);
   const oldDatum = Data.castFrom(data, GovernanceDatum);
   const datum: GovernanceDatum = {
     ...oldDatum,
     proposal_state: "Executed",
   };
-  console.log("datum: ", datum);
+
   const action = datum.proposal_action;
   const updatedConfigDatum: ConfigDatum = {
     ...oldConfigDatum,
@@ -399,7 +399,7 @@ export async function ExecuteProposal(
           }
         : oldConfigDatum.multisig_validator_group,
   };
-  console.log("(.......");
+
   const tx = await lucid
     .newTx()
     .collectFrom([configDatumUtxo], Data.to(configRedeemer))

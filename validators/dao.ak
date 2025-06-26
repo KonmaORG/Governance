@@ -40,7 +40,6 @@ validator dao(config_nft: PolicyId) {
     when datum is {
       Some(data) -> {
         let datum = utils.governance_datum_from_data(data)
-
         // The script requires that the proposal UTxO be spent and a new one created
         // in the same transaction, carrying forward the updated state.
         // Find the script's own hash to locate the continuing output.
@@ -101,30 +100,34 @@ validator dao(config_nft: PolicyId) {
           // match's the configDatum and the output_configDatum
           // the match is done based on the ProposalAction. if its `feesupdate` then we update configDatum's fees field and compare it to the output_configDatum
           ExecuteProposal { proposal_id } -> {
+            trace @"started Execute..........."
             expect and {
                 // 1. The proposal ID must match.
                 // 2. The proposal must currently be 'InProgress'.
                 // 3. The transaction must be after the voting deadline.
                 // 4. The number of 'Yes' votes must be strictly greater than 'No' votes.
                 // 5. The final state of the proposal in the output datum must be 'Executed'.
-                proposal_id == datum.proposal_id,
-                datum.proposal_state == InProgress,
-                moment.is_after(datum.deadline, tx.validity_range),
-                datum.votes_count.no > datum.votes_count.yes,
-                self_output_datum.proposal_state == Executed,
+                (proposal_id == datum.proposal_id)?,
+                (datum.proposal_state == InProgress)?,
+                moment.is_after(datum.deadline, tx.validity_range)?,
+                (datum.votes_count.yes > datum.votes_count.no)?,
+                (self_output_datum.proposal_state == Executed)?,
               }
+            trace @"passed and block --------------------"
             let current_config_datum =
               utils.ref_datum_by_nft(
                 tx.inputs,
                 config_nft,
                 constants.identication_tkn,
               )
+            trace @"found config datm **************"
             let new_config_datum =
               utils.output_ref_datum_by_nft(
                 tx.outputs,
                 config_nft,
                 constants.identication_tkn,
               )
+            trace @"found updated config datum"
             when self_output_datum.proposal_action is {
               ValidatorAdd(added_addr) -> {
                 let multisig_validator_group_new =
