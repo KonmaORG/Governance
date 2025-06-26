@@ -174,7 +174,9 @@ export async function SubmitProposal(
   }
   const configValidator: Validator = {
     type: "PlutusV3",
-    script: script.ConfigDatumHolder,
+    script: applyParamsToScript(script.ConfigDatumHolder, [
+      IDENTIFICATION_PID as PolicyId,
+    ]),
   };
   const configPolicyId = mintingPolicyToId(configValidator);
   const validator: Validator = {
@@ -198,7 +200,7 @@ export async function SubmitProposal(
     slotToUnixTime(lucid.config().network as Network, lucid.currentSlot())
   );
   // console.log(emulator.now(), proposalStart);
-  const proposalEnd = proposalStart + BigInt(180 * 1000); // (60 * 60 * 24 * 30 * 1000); // 30 days
+  const proposalEnd = proposalStart + BigInt(180 * 1000); //(60 * 60 * 24 * 30 * 1000); // 30 days //(180 * 1000); //
   const configDatum = await refConfigDatum(lucid);
   const votes_var: VotesArray = Array.from(
     configDatum.multisig_validator_group.signers
@@ -249,7 +251,9 @@ export async function VoteProposal(
 ) {
   const configValidator: Validator = {
     type: "PlutusV3",
-    script: script.ConfigDatumHolder,
+    script: applyParamsToScript(script.ConfigDatumHolder, [
+      IDENTIFICATION_PID as PolicyId,
+    ]),
   };
   const configPolicyId = mintingPolicyToId(configValidator);
   const validator: Validator = {
@@ -296,7 +300,6 @@ export async function VoteProposal(
           : oldDatum.votes_count.abstain,
     },
   };
-
   const tx = await lucid
     .newTx()
     .readFrom([configDatumUtxo])
@@ -307,8 +310,10 @@ export async function VoteProposal(
       { lovelace: 1n, ...proposalAsset }
     )
     .attach.MintingPolicy(validator)
-    .validFrom(Number(oldDatum.deadline.start))
-    .validTo(Number(oldDatum.deadline.end))
+    .validFrom(
+      slotToUnixTime(lucid.config().network as Network, lucid.currentSlot())
+    )
+    .validTo(Number(oldDatum.deadline.end) - 10000)
     .addSigner(address)
     .complete();
 

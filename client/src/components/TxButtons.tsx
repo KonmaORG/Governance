@@ -132,11 +132,7 @@ export default function TxButtons() {
     const result = await AttachConfigDatum(lucid);
     setResult(result);
   }
-  console.log(
-    paymentCredentialOf(
-      "addr_test1wr9zgr9sn2wzrk85fz4qaprwtsnhnl9dxdk8hfssxl9rhmggg3n9m"
-    ).hash
-  );
+
   return (
     <>
       <div className="flex gap-2">
