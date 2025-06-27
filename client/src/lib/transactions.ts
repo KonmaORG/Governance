@@ -195,7 +195,7 @@ export async function SubmitProposal(
   const proposalEnd = proposalStart + BigInt(30 * 60 * 1000); //(60 * 60 * 24 * 30 * 1000); // 30 days //(180 * 1000); //
   const configDatum = await refConfigDatum(lucid);
   const votes_var: VotesArray = Array.from(
-    configDatum.multisig_validator_group.signers
+    configDatum.multisig_refutxoupdate.signers
   ).map((signer) => {
     const voter: { voter: string; vote: Vote } = {
       voter: signer,
