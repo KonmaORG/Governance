@@ -12,7 +12,7 @@ import {
   accountC,
   accountD,
   emulator,
-} from "./lib/emulator";
+} from "./lib/cardano/emulator";
 
 function App() {
   function getWallets(): EmulatorAccount[] {

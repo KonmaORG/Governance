@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { handleError } from "@/lib/utils";
-import { mkLucid, walletConnect } from "@/lib/lucid";
+import { handleError } from "@/lib/cardano/utils";
+import { mkLucid, walletConnect } from "@/lib/cardano/lucid";
 import { Button } from "../ui/button";
 import { LoaderCircle, LogOut, WalletIcon } from "lucide-react";
 

@@ -1,4 +1,4 @@
-import { AttachConfigDatum } from "@/lib/transactions";
+import { AttachConfigDatum } from "@/lib/cardano/transactions";
 export function AttachConfigButton({
   name,
   color,

@@ -14,14 +14,14 @@ import {
   type PolicyId,
   type Validator,
 } from "@lucid-evolution/lucid";
-import { script } from "../config/script";
-import { Action, GovernanceRedeemer } from "../types/Redeemer";
-import { ConfigDatum, GovernanceDatum } from "../types/Datum";
+import { script } from "../../config/script";
+import { Action, GovernanceRedeemer } from "../../types/Redeemer";
+import { ConfigDatum, GovernanceDatum } from "../../types/Datum";
 import {
   CATEGORIES,
   IDENTIFICATION_PID,
   IDENTIFICATION_TKN,
-} from "../config/constants";
+} from "../../config/constants";
 import {
   ProposalAction,
   Vote,
@@ -29,7 +29,7 @@ import {
   Wallet,
   type AssetClass,
   type Multisig,
-} from "../types/Utils";
+} from "../../types/Utils";
 import { blockfrost, refConfigDatum, refConfigUtxo } from "./utils";
 
 export async function MintIdentificationToken(

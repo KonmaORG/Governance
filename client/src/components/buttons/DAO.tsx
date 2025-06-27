@@ -4,7 +4,7 @@ import {
   RejectProposal,
   SubmitProposal,
   VoteProposal,
-} from "@/lib/transactions";
+} from "@/lib/cardano/transactions";
 import type { ProposalAction, Vote } from "@/types/Utils";
 import { paymentCredentialOf, stakeCredentialOf } from "@lucid-evolution/lucid";
 export function DaoTxButton({

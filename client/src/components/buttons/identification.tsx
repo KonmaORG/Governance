@@ -1,4 +1,4 @@
-import { MintIdentificationToken } from "@/lib/transactions";
+import { MintIdentificationToken } from "@/lib/cardano/transactions";
 export function MintIdentificationButton({
   name,
   color,

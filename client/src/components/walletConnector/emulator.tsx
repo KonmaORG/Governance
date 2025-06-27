@@ -5,8 +5,8 @@ import { WalletIcon } from "lucide-react";
 import type { EmulatorAccount } from "@lucid-evolution/lucid";
 
 import { Button } from "@/components/ui/button";
-import { handleError } from "@/lib/utils";
-import { mkLucid } from "@/lib/lucid";
+import { handleError } from "@/lib/cardano/utils";
+import { mkLucid } from "@/lib/cardano/lucid";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -20,7 +20,7 @@ import {
   accountC,
   accountD,
   emulator,
-} from "@/lib/emulator";
+} from "@/lib/cardano/emulator";
 import { useCardano } from "@/context/CardanoContext";
 
 export default function WalletConnector() {
@@ -73,7 +73,7 @@ export default function WalletConnector() {
   }
 
   return (
-    <div className="flex gap-2 items-center">
+    <div className="flex gap-2 items-center justify-center">
       <Button
         onClick={emulatorlog}
         className="w-fit max-sm:hidden border-primary/50 border-2"
