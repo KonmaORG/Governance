@@ -119,6 +119,8 @@ export default function WalletConnector() {
                   setTimeout(() => {
                     setCardano((prev) => ({
                       ...prev,
+                      address: undefined,
+                      balance: undefined,
                       isEmulator: checked,
                     }));
                   }, 500);
