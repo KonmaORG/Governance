@@ -7,6 +7,11 @@ import {
 } from "../config/constants";
 import { ConfigDatum } from "../types/Datum";
 import { toast } from "sonner";
+import { twMerge } from "tailwind-merge";
+import { clsx, type ClassValue } from "clsx";
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export async function refConfigUtxo(lucid: LucidEvolution) {
   const unit = IDENTIFICATION_PID + fromText(IDENTIFICATION_TKN);

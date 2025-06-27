@@ -3,18 +3,9 @@
 import { useEffect, useState } from "react";
 import { WalletIcon } from "lucide-react";
 import type { EmulatorAccount } from "@lucid-evolution/lucid";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+
 import { Button } from "@/components/ui/button";
-import { useWallet } from "@/context/walletContext";
 import { handleError } from "@/lib/utils";
-import { Admin, UserA, UserB, UserC, emulator } from "@/config/emulator";
 import { mkLucid } from "@/lib/lucid";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -23,23 +14,30 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  accountA,
+  accountB,
+  accountC,
+  accountD,
+  emulator,
+} from "@/lib/emulator";
+import { useCardano } from "@/context/CardanoContext";
 
 export default function WalletConnector() {
-  const [walletConnection, setWalletConnection] = useWallet();
-  const { lucid, isEmulator } = walletConnection;
+  const { lucid, isEmulator, setCardano } = useCardano();
   const [wallets, setWallets] = useState<
     Record<string, { account: EmulatorAccount; connected: boolean }>
   >({
-    UserA: { account: Admin, connected: false },
-    UserB: { account: UserA, connected: false },
-    UserC: { account: UserB, connected: false },
-    UserD: { account: UserC, connected: false },
+    UserA: { account: accountA, connected: false },
+    UserB: { account: accountB, connected: false },
+    UserC: { account: accountC, connected: false },
+    UserD: { account: accountD, connected: false },
   });
 
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    mkLucid(setWalletConnection, true);
+    mkLucid(setCardano, true);
   }, []);
 
   async function onConnectWallet(account: EmulatorAccount) {
@@ -56,8 +54,8 @@ export default function WalletConnector() {
         return acc;
       }, {} as Record<string, { account: EmulatorAccount; connected: boolean }>);
       setWallets(updatedWallets);
-      setWalletConnection((walletConnection) => {
-        return { ...walletConnection, address };
+      setCardano((prev) => {
+        return { ...prev, address };
       });
       console.log("connected emulator wallet\n", address);
     } catch (error) {
@@ -119,7 +117,7 @@ export default function WalletConnector() {
                 onCheckedChange={(checked) => {
                   setIsOpen(false);
                   setTimeout(() => {
-                    setWalletConnection((prev) => ({
+                    setCardano((prev) => ({
                       ...prev,
                       isEmulator: checked,
                     }));

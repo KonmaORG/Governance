@@ -9,6 +9,7 @@ import { useCardano } from "./context/CardanoContext";
 import TxButtons from "./components/TxButtons";
 import { BF_PID, BF_URL } from "./config/constants";
 import type { CardanoWallet } from "@/types/Cardano";
+import WalletConnectorButton from "./components/walletConnector/WalletConnectorButton";
 
 function App() {
   function getWallets(): CardanoWallet[] {
@@ -67,6 +68,7 @@ function App() {
           <TxButtons />
         </div>
       )}
+      <WalletConnectorButton />
     </>
   );
 }
