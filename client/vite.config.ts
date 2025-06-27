@@ -5,6 +5,7 @@ import wasm from "vite-plugin-wasm";
 import tailwindcss from "@tailwindcss/vite";
 // https://vite.dev/config/
 export default defineConfig({
+  base: "./",
   plugins: [react(), wasm(), tailwindcss()],
   resolve: {
     alias: {
