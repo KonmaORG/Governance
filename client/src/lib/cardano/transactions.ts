@@ -6,7 +6,6 @@ import {
   mintingPolicyToId,
   paymentCredentialOf,
   slotToUnixTime,
-  stakeCredentialOf,
   validatorToAddress,
   type Address,
   type LucidEvolution,
@@ -14,22 +13,17 @@ import {
   type PolicyId,
   type Validator,
 } from "@lucid-evolution/lucid";
-import { script } from "../../config/script";
-import { Action, GovernanceRedeemer } from "../../types/Redeemer";
-import { ConfigDatum, GovernanceDatum } from "../../types/Datum";
-import {
-  CATEGORIES,
-  IDENTIFICATION_PID,
-  IDENTIFICATION_TKN,
-} from "../../config/constants";
+import { script } from "@/config/script";
+import { Action, GovernanceRedeemer } from "@/types/Redeemer";
+import { ConfigDatum, GovernanceDatum } from "@/types/Datum";
+import { IDENTIFICATION_PID, IDENTIFICATION_TKN } from "@/config/constants";
 import {
   ProposalAction,
   Vote,
   VotesArray,
   Wallet,
   type AssetClass,
-  type Multisig,
-} from "../../types/Utils";
+} from "@/types/Utils";
 import { blockfrost, refConfigDatum, refConfigUtxo } from "./utils";
 
 export async function MintIdentificationToken(
@@ -65,15 +59,40 @@ export async function MintIdentificationToken(
   return txHash;
 }
 
-export async function AttachConfigDatum(lucid: LucidEvolution) {
-  // try {
+export async function AttachConfigDatum(
+  lucid: LucidEvolution,
+  configParams: {
+    fees_address: {
+      pkh: string;
+      sc: string;
+    };
+    fees_amount: bigint;
+    fees_asset_class: {
+      policy_id: string;
+      asset_name: string;
+    };
+    spend_address: {
+      pkh: string;
+      sc: string;
+    };
+    categories: string[];
+    multisig_validator_group: {
+      required: bigint;
+      signers: string[];
+    };
+    multisig_refutxoupdate: {
+      required: bigint;
+      signers: string[];
+    };
+  }
+) {
   const ref_assetName = IDENTIFICATION_TKN;
   const karbonAsset = { [IDENTIFICATION_PID + fromText(ref_assetName)]: 1n };
 
   const configValidator: Validator = {
     type: "PlutusV3",
     script: applyParamsToScript(script.ConfigDatumHolder, [
-      IDENTIFICATION_PID as PolicyId,
+      IDENTIFICATION_PID as string,
     ]),
   };
   const configAddress = validatorToAddress(
@@ -82,68 +101,26 @@ export async function AttachConfigDatum(lucid: LucidEvolution) {
   );
   const daoValidator: Validator = {
     type: "PlutusV3",
-    script: applyParamsToScript(script.Dao, [IDENTIFICATION_PID as PolicyId]),
+    script: applyParamsToScript(script.Dao, [IDENTIFICATION_PID as string]),
   };
   const daoPolicyId = mintingPolicyToId(daoValidator);
-  console.log(daoPolicyId);
-  const assestClass: AssetClass = {
+  const assetClass: AssetClass = configParams?.fees_asset_class || {
     policy_id: "",
     asset_name: fromText(""),
   };
-  const signer: Multisig = {
-    required: 3n,
-    signers: [
-      paymentCredentialOf(
-        "addr_test1qzk08tz3s7xcaxq5q0udh5kpm6fz8vhpd230c07nehtzl5ahaqav4a8stg7sfudah7uxw5g9umv897ppygy559le55tql9690r"
-      ).hash,
-      paymentCredentialOf(
-        "addr_test1qppjp6z53cr6axg59ezf93vlcqqva7wg6d5zfxr5fctnsuveaxzar94mukjwdp323ahhs3tsn0nmawextjtkfztcs20q6fmam2"
-      ).hash,
-      paymentCredentialOf(
-        "addr_test1qzzxrfxg6hq8zerw8g85cvcpxutjtgez5v75rs99kdnn404cfuf2xydw2zrehxmvd3k9nqywe3d6mn64a08ncc5h5s3qd5ewlk"
-      ).hash,
-      paymentCredentialOf(
-        "addr_test1qr3deh8jxn9ejxmuunv6krgtt6q600tt289pkdhg0vrfcvvrm9x488u4tefkkjay9k49yvdwc459uxc2064eulk2raaqjzwsv3"
-      ).hash,
-      paymentCredentialOf(
-        "addr_test1qzs3pj8vvkhu8d7g0p3sfj8896wds459gqcdes04c5fp7pcs2k7ckl5mly9f89s6zpnx9av7qnl59edp0jy2ac6twtmss44zee"
-      ).hash,
-    ],
-  };
-  // const signer: Multisig = {
-  //   required: 3n,
-  //   signers: [
-  //     paymentCredentialOf(accountA.address).hash,
-  //     paymentCredentialOf(accountB.address).hash,
-  //     paymentCredentialOf(accountC.address).hash,
-  //     paymentCredentialOf(accountD.address).hash,
-  //   ],
-  // };
-  // scriptHashToCredential
   const datum: ConfigDatum = {
-    fees_address: {
-      pkh: paymentCredentialOf(
-        "addr_test1qzk08tz3s7xcaxq5q0udh5kpm6fz8vhpd230c07nehtzl5ahaqav4a8stg7sfudah7uxw5g9umv897ppygy559le55tql9690r"
-      ).hash,
-      sc: stakeCredentialOf(
-        "addr_test1qzk08tz3s7xcaxq5q0udh5kpm6fz8vhpd230c07nehtzl5ahaqav4a8stg7sfudah7uxw5g9umv897ppygy559le55tql9690r"
-      ).hash,
-    },
-    fees_amount: 100_000_000n,
-    fees_asset_class: assestClass,
-    spend_address: {
-      pkh: paymentCredentialOf(
-        "addr_test1qzk08tz3s7xcaxq5q0udh5kpm6fz8vhpd230c07nehtzl5ahaqav4a8stg7sfudah7uxw5g9umv897ppygy559le55tql9690r"
-      ).hash,
-      sc: "",
-    }, // need verification form sourabh (how to pass address directly?)
-    categories: CATEGORIES.map((category) => fromText(category)),
-    multisig_validator_group: signer,
-    multisig_refutxoupdate: signer,
+    fees_address: configParams.fees_address,
+    fees_amount: configParams.fees_amount,
+    fees_asset_class: assetClass,
+    spend_address: configParams.spend_address,
+    categories: configParams.categories,
+    multisig_validator_group: configParams.multisig_validator_group,
+    multisig_refutxoupdate: configParams.multisig_refutxoupdate,
     cet_policyid: IDENTIFICATION_PID,
     cot_policyId: IDENTIFICATION_PID,
     dao_policyid: daoPolicyId,
   };
+
   const tx = await lucid
     .newTx()
     .pay.ToAddressWithData(
@@ -153,13 +130,10 @@ export async function AttachConfigDatum(lucid: LucidEvolution) {
     )
     .complete();
 
-  const signed = await tx.sign.withWallet().complete();
-  const txHash = await signed.submit();
+  const signedTx = await tx.sign.withWallet().complete();
+  const txHash = await signedTx.submit();
 
   return txHash;
-  // } catch (error) {
-  //   console.log(error);
-  // }
 }
 
 export async function SubmitProposal(
