@@ -9,7 +9,7 @@ import { useCardano } from "./context/CardanoContext";
 import TxButtons from "./components/TxButtons";
 import { BF_PID, BF_URL } from "./config/constants";
 import type { CardanoWallet } from "@/types/Cardano";
-import WalletConnectorButton from "./components/walletConnector/WalletConnectorButton";
+import Navbar from "./components/navbar";
 
 function App() {
   function getWallets(): CardanoWallet[] {
@@ -47,7 +47,8 @@ function App() {
   }
 
   return (
-    <>
+    <div className="w-full h-screen">
+      <Navbar />
       {wallets.length === 0 && "No wallets found."}
       {!address ? (
         wallets.map((wallet, w) => (
@@ -68,8 +69,7 @@ function App() {
           <TxButtons />
         </div>
       )}
-      <WalletConnectorButton />
-    </>
+    </div>
   );
 }
 
