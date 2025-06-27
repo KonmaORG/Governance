@@ -13,7 +13,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Label } from "../ui/label";
 
 export default function WalletComponent() {
-  const { lucid, wallet, balance, isEmulator, setCardano } = useCardano();
+  const { lucid, wallet, balance, isEmulator, setCardano, resetCardano } =
+    useCardano();
   const [wallets, setWallets] = useState<CardanoWallet[]>();
   const [isOpen, setIsOpen] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -45,13 +46,7 @@ export default function WalletComponent() {
     setConnecting(false);
   }
   function disconnect() {
-    setCardano((prev) => ({
-      ...prev,
-      address: undefined,
-      wallet: undefined,
-      balance: undefined,
-      isEmulator: false,
-    }));
+    resetCardano();
     setIsOpen(false);
   }
 
