@@ -15,6 +15,7 @@ export type Cardano = {
   wallet?: CardanoWallet | null;
   address?: Address | null;
   balance?: number | null;
+  isEmulator?: boolean;
 };
 
 type CardanoContextType = Cardano & {
@@ -26,13 +27,7 @@ export const CardanoContext = createContext<CardanoContextType | undefined>(
 );
 
 export default function CardanoProvider(props: { children: React.ReactNode }) {
-  //   const [cardano, setCardano] = useState<Cardano>({
-  //     lucid: null, // Explicitly null to reset values
-  //     wallet: null, // Explicitly null to reset values
-  //     address: null, // Explicitly null to reset values
-  //     balance: null, // Explicitly null to reset values
-  //   });
-  const [cardano, setCardano] = useState<Cardano>({});
+  const [cardano, setCardano] = useState<Cardano>({ isEmulator: true });
 
   const contextValue: CardanoContextType = {
     ...cardano,

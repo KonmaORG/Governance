@@ -4,21 +4,15 @@ import {
   Blockfrost,
   Lucid,
   // type LucidEvolution,
-  type WalletApi,
 } from "@lucid-evolution/lucid";
 import { useCardano } from "./context/CardanoContext";
 import TxButtons from "./components/TxButtons";
 import { BF_PID, BF_URL } from "./config/constants";
-type Wallet = {
-  name: string;
-  icon: string;
-  apiVersion: string;
-  enable(): Promise<WalletApi>;
-  isEnabled(): Promise<boolean>;
-};
+import type { CardanoWallet } from "@/types/Cardano";
+
 function App() {
-  function getWallets(): Wallet[] {
-    const wallets: Wallet[] = [];
+  function getWallets(): CardanoWallet[] {
+    const wallets: CardanoWallet[] = [];
     const cardano = (window as any).cardano;
 
     for (const c in cardano) {
@@ -37,7 +31,7 @@ function App() {
   const wallets = getWallets();
   // const [lucid, setLucid] = useState<LucidEvolution | null>(null);
   const { address, setCardano } = useCardano();
-  async function connectWallet(wallet: Wallet) {
+  async function connectWallet(wallet: CardanoWallet) {
     const [api, lucid] = await Promise.all([
       wallet.enable(),
       Lucid(new Blockfrost(BF_URL, BF_PID), "Preview"),
