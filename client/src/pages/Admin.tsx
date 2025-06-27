@@ -4,7 +4,6 @@ import { MintIdentificationButton } from "@/components/buttons/identification";
 export default function Admin() {
   return (
     <div>
-      <h1>Admin Page</h1>
       <div className="mx-auto">
         <div className="">
           <h1>
@@ -17,7 +16,10 @@ export default function Admin() {
           />
         </div>
         <div className="">
-          <h1>ONLY FOR ONE TIME USAGE</h1>
+          <h1>
+            ONLY FOR ONE TIME USAGE - next time DAO votes will be used to update
+            this
+          </h1>
           <AttachConfigButton name="Attach Configuration Datum" color="teal" />
         </div>
       </div>
