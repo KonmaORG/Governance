@@ -1,15 +1,9 @@
 import { useState } from "react";
-import { useCardano } from "../context/CardanoContext";
-import {
-  AttachConfigDatum,
-  ExecuteProposal,
-  MintIdentificationToken,
-  RejectProposal,
-  SubmitProposal,
-  VoteProposal,
-} from "../lib/transactions";
-import type { ProposalAction, Vote } from "../types/Utils";
-import { paymentCredentialOf, stakeCredentialOf } from "@lucid-evolution/lucid";
+import { useCardano } from "@/context/CardanoContext";
+import type { Vote } from "@/types/Utils";
+import { DaoTxButton } from "./buttons/DAO";
+import { MintIdentificationButton } from "./buttons/identification";
+import { AttachConfigButton } from "./buttons/configDatum";
 
 export default function TxButtons() {
   const { address, lucid } = useCardano();
@@ -23,133 +17,26 @@ export default function TxButtons() {
     | "FeeAddressUpdate"
     | null
   >(null);
-  const [actionAddress, setActionAddress] = useState<string>(""); // Store the address input
-  const [actionAmount, setActionAmount] = useState<string>(""); // Store amount for FeeAmountUpdate
-
-  async function ProposalTx(
-    proposalType: "Submit" | "Vote" | "Execute" | "Reject"
-  ) {
-    if (!address || !lucid || !proposalId) {
-      console.log("Values Missing (Address, Lucid, ProposalId)");
-      return;
-    }
-
-    if (proposalType === "Submit") {
-      if (!action) {
-        console.log("Select action");
-        return;
-      }
-
-      let proposalAction: ProposalAction;
-      switch (action) {
-        case "ValidatorAdd":
-          if (!actionAddress) {
-            console.log("Address is required");
-            return;
-          }
-          try {
-            const pkh = paymentCredentialOf(actionAddress).hash;
-            proposalAction = { [action]: [pkh] };
-          } catch (error) {
-            console.log("Invalid address for PKH derivation");
-            return;
-          }
-          break;
-        case "ValidatorRemove":
-          if (!actionAddress) {
-            console.log("Address is required");
-            return;
-          }
-          try {
-            const pkh = paymentCredentialOf(actionAddress).hash;
-            proposalAction = { [action]: [pkh] };
-          } catch (error) {
-            console.log("Invalid address for PKH derivation");
-            return;
-          }
-          break;
-        case "FeeAmountUpdate":
-          if (!actionAmount) {
-            console.log("Amount is required");
-            return;
-          }
-          proposalAction = { [action]: [BigInt(actionAmount)] };
-          break;
-        case "FeeAddressUpdate":
-          if (!actionAddress) {
-            console.log("Address is required");
-            return;
-          }
-          try {
-            const pkh = paymentCredentialOf(actionAddress).hash;
-            const sc = stakeCredentialOf(actionAddress)?.hash;
-            if (!sc) {
-              console.log("Stake credential is required for FeeAddressUpdate");
-              return;
-            }
-            proposalAction = { [action]: [{ pkh, sc }] };
-          } catch (error) {
-            console.log("Invalid address for PKH/SC derivation");
-            return;
-          }
-          break;
-        default:
-          console.log("Invalid action");
-          return;
-      }
-
-      const result = await SubmitProposal(
-        lucid,
-        proposalId,
-        address,
-        proposalAction
-      );
-      setResult(result);
-    } else if (proposalType === "Vote") {
-      if (!vote) {
-        console.log("Select vote");
-        return;
-      }
-      const result = await VoteProposal(lucid, proposalId, address, vote);
-      setResult(result);
-    } else if (proposalType === "Execute") {
-      const result = await ExecuteProposal(lucid, proposalId, address);
-      setResult(result);
-    } else if (proposalType === "Reject") {
-      const result = await RejectProposal(lucid, proposalId, address);
-      setResult(result);
-    } else {
-      console.log(`Invalid Proposal Transaction Type...`);
-    }
-  }
-
-  async function mintIdentificationToken() {
-    if (!lucid || !address) return;
-    const result = await MintIdentificationToken(lucid, address);
-    setResult(result);
-  }
-
-  async function attachConfigDatum() {
-    if (!lucid || !address) return;
-    const result = await AttachConfigDatum(lucid);
-    setResult(result);
-  }
+  const [actionAddress, setActionAddress] = useState<string>("");
+  const [actionAmount, setActionAmount] = useState<string>("");
 
   return (
     <>
       <div className="flex gap-2">
-        <button
-          className="bg-blue-700 p-3 rounded-lg disabled:bg-blue-800"
-          onClick={mintIdentificationToken}
-        >
-          Identification tk
-        </button>
-        <button
-          className="bg-blue-700 p-3 rounded-lg disabled:bg-blue-800"
-          onClick={attachConfigDatum}
-        >
-          Attach Config Datum
-        </button>
+        <MintIdentificationButton
+          name="Identification tk"
+          color="blue"
+          lucid={lucid}
+          address={address}
+          setResult={setResult}
+        />
+        <AttachConfigButton
+          name="Attach Config Datum"
+          color="blue"
+          lucid={lucid}
+          address={address}
+          setResult={setResult}
+        />
       </div>
       <input
         type="text"
@@ -203,12 +90,17 @@ export default function TxButtons() {
         )}
       </div>
       <div className="flex gap-2">
-        <button
-          onClick={() => ProposalTx("Submit")}
-          className="bg-green-700 p-3 rounded-lg disabled:bg-green-800"
-        >
-          SubmitProposal
-        </button>
+        <DaoTxButton
+          name="SubmitProposal"
+          color="green"
+          proposalType="Submit"
+          proposalId={proposalId}
+          action={action}
+          actionAddress={actionAddress}
+          actionAmount={actionAmount}
+          vote={vote}
+          setResult={setResult}
+        />
         <div className="flex flex-col">
           <select
             value={vote || ""}
@@ -220,25 +112,40 @@ export default function TxButtons() {
             <option value="No">No</option>
             <option value="Abstain">Abstain</option>
           </select>
-          <button
-            onClick={() => ProposalTx("Vote")}
-            className="bg-green-700 p-3 rounded-lg disabled:bg-green-800"
-          >
-            VoteProposal
-          </button>
+          <DaoTxButton
+            name="VoteProposal"
+            color="green"
+            proposalType="Vote"
+            proposalId={proposalId}
+            action={action}
+            actionAddress={actionAddress}
+            actionAmount={actionAmount}
+            vote={vote}
+            setResult={setResult}
+          />
         </div>
-        <button
-          onClick={() => ProposalTx("Execute")}
-          className="bg-green-700 p-3 rounded-lg disabled:bg-green-800"
-        >
-          ExecuteProposal
-        </button>
-        <button
-          onClick={() => ProposalTx("Reject")}
-          className="bg-green-700 p-3 rounded-lg disabled:bg-green-800"
-        >
-          RejectProposal
-        </button>
+        <DaoTxButton
+          name="ExecuteProposal"
+          color="green"
+          proposalType="Execute"
+          proposalId={proposalId}
+          action={action}
+          actionAddress={actionAddress}
+          actionAmount={actionAmount}
+          vote={vote}
+          setResult={setResult}
+        />
+        <DaoTxButton
+          name="RejectProposal"
+          color="green"
+          proposalType="Reject"
+          proposalId={proposalId}
+          action={action}
+          actionAddress={actionAddress}
+          actionAmount={actionAmount}
+          vote={vote}
+          setResult={setResult}
+        />
       </div>
       <p>{result && "result, " + result}</p>
     </>
