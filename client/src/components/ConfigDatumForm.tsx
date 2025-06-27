@@ -10,9 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useCardano } from "@/context/CardanoContext";
 import { AttachConfigDatum } from "@/lib/cardano/transactions";
-import { Plus, Minus } from "lucide-react";
 import { CATEGORIES } from "@/config/constants";
 import { paymentCredentialOf, stakeCredentialOf } from "@lucid-evolution/lucid";
+import { TagInput } from "@/components/ui/tag-input";
 
 interface ConfigFormData {
   fees_address: string;
@@ -62,45 +62,6 @@ export function AttachConfigForm() {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
-    }));
-  };
-
-  const handleArrayChange = (
-    field:
-      | "categories"
-      | "multisig_validator_signers"
-      | "multisig_refutxo_signers",
-    index: number,
-    value: string
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: prev[field].map((item, i) => (i === index ? value : item)),
-    }));
-  };
-
-  const addArrayItem = (
-    field:
-      | "categories"
-      | "multisig_validator_signers"
-      | "multisig_refutxo_signers"
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: [...prev[field], ""],
-    }));
-  };
-
-  const removeArrayItem = (
-    field:
-      | "categories"
-      | "multisig_validator_signers"
-      | "multisig_refutxo_signers",
-    index: number
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: prev[field].filter((_, i) => i !== index),
     }));
   };
 
@@ -203,6 +164,7 @@ export function AttachConfigForm() {
                 onChange={(e) =>
                   handleInputChange("fees_asset_policy_id", e.target.value)
                 }
+                placeholder="default ADA policy ID"
                 className="border-teal-200 focus:border-teal-500"
               />
             </div>
@@ -216,6 +178,7 @@ export function AttachConfigForm() {
                 onChange={(e) =>
                   handleInputChange("fees_asset_name", e.target.value)
                 }
+                placeholder="default ADA token"
                 className="border-teal-200 focus:border-teal-500"
               />
             </div>
@@ -255,37 +218,14 @@ export function AttachConfigForm() {
         <CardHeader className="bg-teal-50">
           <CardTitle className="text-teal-800">Categories</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 pt-6">
-          {formData.categories.map((category, index) => (
-            <div key={index} className="flex gap-2">
-              <Input
-                value={category}
-                onChange={(e) =>
-                  handleArrayChange("categories", index, e.target.value)
-                }
-                placeholder={`Category ${index + 1}`}
-                className="border-teal-200 focus:border-teal-500"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => removeArrayItem("categories", index)}
-                className="border-teal-200 text-teal-600 hover:bg-teal-50"
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => addArrayItem("categories")}
-            className="border-teal-200 text-teal-600 hover:bg-teal-50"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Category
-          </Button>
+        <CardContent className="pt-6">
+          <TagInput
+            tags={formData.categories}
+            onTagsChange={(newCategories) =>
+              setFormData((prev) => ({ ...prev, categories: newCategories }))
+            }
+            placeholder="Enter a category and press Enter or click +"
+          />
         </CardContent>
       </Card>
 
@@ -315,42 +255,19 @@ export function AttachConfigForm() {
               required
             />
           </div>
-          {formData.multisig_validator_signers.map((signer, index) => (
-            <div key={index} className="flex gap-2">
-              <Input
-                value={signer}
-                onChange={(e) =>
-                  handleArrayChange(
-                    "multisig_validator_signers",
-                    index,
-                    e.target.value
-                  )
-                }
-                placeholder={`Signer Address ${index + 1}`}
-                className="border-teal-200 focus:border-teal-500"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() =>
-                  removeArrayItem("multisig_validator_signers", index)
-                }
-                className="border-teal-200 text-teal-600 hover:bg-teal-50"
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => addArrayItem("multisig_validator_signers")}
-            className="border-teal-200 text-teal-600 hover:bg-teal-50"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Signer
-          </Button>
+          <div>
+            <Label className="text-teal-700">Signer Addresses</Label>
+            <TagInput
+              tags={formData.multisig_validator_signers}
+              onTagsChange={(newSigners) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  multisig_validator_signers: newSigners,
+                }))
+              }
+              placeholder="Enter signer address and press Enter or click +"
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -378,42 +295,19 @@ export function AttachConfigForm() {
               required
             />
           </div>
-          {formData.multisig_refutxo_signers.map((signer, index) => (
-            <div key={index} className="flex gap-2">
-              <Input
-                value={signer}
-                onChange={(e) =>
-                  handleArrayChange(
-                    "multisig_refutxo_signers",
-                    index,
-                    e.target.value
-                  )
-                }
-                placeholder={`Signer Address ${index + 1}`}
-                className="border-teal-200 focus:border-teal-500"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() =>
-                  removeArrayItem("multisig_refutxo_signers", index)
-                }
-                className="border-teal-200 text-teal-600 hover:bg-teal-50"
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => addArrayItem("multisig_refutxo_signers")}
-            className="border-teal-200 text-teal-600 hover:bg-teal-50"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Signer
-          </Button>
+          <div>
+            <Label className="text-teal-700">Signer Addresses</Label>
+            <TagInput
+              tags={formData.multisig_refutxo_signers}
+              onTagsChange={(newSigners) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  multisig_refutxo_signers: newSigners,
+                }))
+              }
+              placeholder="Enter signer address and press Enter or click +"
+            />
+          </div>
         </CardContent>
       </Card>
 
