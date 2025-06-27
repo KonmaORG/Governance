@@ -7,6 +7,7 @@ import {
 } from "@/lib/cardano/transactions";
 import type { ProposalAction, Vote } from "@/types/Utils";
 import { paymentCredentialOf, stakeCredentialOf } from "@lucid-evolution/lucid";
+import { Button } from "@/components/ui/button";
 export function DaoTxButton({
   name,
   color,
@@ -128,8 +129,8 @@ export function DaoTxButton({
   }
 
   return (
-    <button
-      className={`bg-${color}-700 p-3 rounded-lg disabled:bg-${color}-800`}
+    <Button
+      className={`bg-${color}-700 p-3 rounded-lg hover:bg-${color}-800`}
       onClick={ProposalTx}
       disabled={
         !lucid ||
@@ -140,6 +141,6 @@ export function DaoTxButton({
       }
     >
       {name}
-    </button>
+    </Button>
   );
 }

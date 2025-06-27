@@ -1,4 +1,5 @@
 import { MintIdentificationToken } from "@/lib/cardano/transactions";
+import { Button } from "../ui/button";
 export function MintIdentificationButton({
   name,
   color,
@@ -22,12 +23,12 @@ export function MintIdentificationButton({
   }
 
   return (
-    <button
-      className={`bg-${color}-700 p-3 rounded-lg disabled:bg-${color}-800`}
+    <Button
+      className={`bg-${color}-700 p-3 rounded-lg hover:bg-${color}-800`}
       onClick={mintIdentificationToken}
       disabled={!lucid || !address}
     >
       {name}
-    </button>
+    </Button>
   );
 }
