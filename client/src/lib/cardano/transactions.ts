@@ -16,7 +16,11 @@ import {
 import { script } from "@/config/script";
 import { Action, GovernanceRedeemer } from "@/types/Redeemer";
 import { ConfigDatum, GovernanceDatum } from "@/types/Datum";
-import { IDENTIFICATION_PID, IDENTIFICATION_TKN } from "@/config/constants";
+import {
+  IDENTIFICATION_PID,
+  IDENTIFICATION_TKN,
+  PROPOSALDEADLINE,
+} from "@/config/constants";
 import {
   ProposalAction,
   Vote,
@@ -183,7 +187,7 @@ export async function SubmitProposal(
       slotToUnixTime(lucid.config().network as Network, lucid.currentSlot())
     );
     // console.log(emulator.now(), proposalStart);
-    const proposalEnd = proposalStart + BigInt(30 * 60 * 1000); //(60 * 60 * 24 * 30 * 1000); // 30 days //(180 * 1000); //
+    const proposalEnd = proposalStart + BigInt(PROPOSALDEADLINE); // DEAFAULT TIME FOR PROPOSAL
     const configDatum = await refConfigDatum(lucid);
     const votes_var: VotesArray = Array.from(
       configDatum.multisig_refutxoupdate.signers

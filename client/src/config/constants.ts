@@ -19,3 +19,5 @@ export const CATEGORIES = [
 export const BF_URL = import.meta.env.VITE_BF_URL!;
 export const BF_PID = import.meta.env.VITE_BF_PID!;
 export const NETWORK = import.meta.env.VITE_CARDANO_NETWORK;
+
+export const PROPOSALDEADLINE = 60 * 60 * 24 * 30 * 1000;

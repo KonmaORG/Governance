@@ -102,7 +102,6 @@ export function handleError(error: any) {
 
     const failureInfo = failureCause?.info;
     const failureMessage = failureCause?.message;
-
     toast.error(
       `${
         failureTrace ??

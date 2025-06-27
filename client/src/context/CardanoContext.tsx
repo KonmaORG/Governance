@@ -36,7 +36,7 @@ export const CardanoContext = createContext<CardanoContextType | undefined>(
 );
 
 export default function CardanoProvider(props: { children: React.ReactNode }) {
-  const [cardano, setCardano] = useState<Cardano>({ isEmulator: true });
+  const [cardano, setCardano] = useState<Cardano>({ isEmulator: false });
 
   // Reset to default with isEmulator false
   const resetCardano = useCallback(() => {

@@ -33,7 +33,6 @@ import {
 export default function TxButtons() {
   const { address } = useCardano();
   const [proposalId, setProposalId] = useState<string>("");
-  const [result, setResult] = useState<string>("");
   const [vote, setVote] = useState<Vote | null>(null);
   const [action, setAction] = useState<
     | "ValidatorAdd"
@@ -255,7 +254,6 @@ export default function TxButtons() {
                 actionAddress={actionAddress}
                 actionAmount={actionAmount}
                 vote={vote}
-                setResult={setResult}
               />
             </div>
 
@@ -275,7 +273,6 @@ export default function TxButtons() {
                 actionAddress={actionAddress}
                 actionAmount={actionAmount}
                 vote={vote}
-                setResult={setResult}
               />
             </div>
 
@@ -294,7 +291,6 @@ export default function TxButtons() {
                 actionAddress={actionAddress}
                 actionAmount={actionAmount}
                 vote={vote}
-                setResult={setResult}
               />
             </div>
 
@@ -313,30 +309,11 @@ export default function TxButtons() {
                 actionAddress={actionAddress}
                 actionAmount={actionAmount}
                 vote={vote}
-                setResult={setResult}
               />
             </div>
           </div>
         </CardContent>
       </Card>
-
-      {/* Results Section */}
-      {result && (
-        <Card className="border-teal-200 bg-teal-50">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-teal-700">
-              Transaction Result
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="p-4 bg-white rounded-lg border border-teal-200">
-              <p className="text-teal-800 font-mono text-sm break-all">
-                {result}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

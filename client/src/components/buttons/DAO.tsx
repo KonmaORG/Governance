@@ -8,6 +8,9 @@ import {
 import type { ProposalAction, Vote } from "@/types/Utils";
 import { paymentCredentialOf, stakeCredentialOf } from "@lucid-evolution/lucid";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { LoaderCircle } from "lucide-react";
+
 export function DaoTxButton({
   name,
   color,
@@ -17,7 +20,6 @@ export function DaoTxButton({
   actionAddress,
   actionAmount,
   vote,
-  setResult,
 }: {
   name: string;
   color: string;
@@ -32,14 +34,16 @@ export function DaoTxButton({
   actionAddress: string;
   actionAmount: string;
   vote: Vote | null;
-  setResult: (result: string) => void;
 }) {
   const { address, lucid } = useCardano();
+  const [submitting, setSubmitting] = useState(false);
+
   async function ProposalTx() {
     if (!address || !lucid || !proposalId) {
       console.log("Values Missing (Address, Lucid, ProposalId)");
       return;
     }
+    setSubmitting(true);
 
     if (proposalType === "Submit") {
       if (!action) {
@@ -105,27 +109,19 @@ export function DaoTxButton({
           return;
       }
 
-      const result = await SubmitProposal(
-        lucid,
-        proposalId,
-        address,
-        proposalAction
-      );
-      setResult(result);
+      await SubmitProposal(lucid, proposalId, address, proposalAction);
     } else if (proposalType === "Vote") {
       if (!vote) {
         console.log("Select vote");
         return;
       }
-      const result = await VoteProposal(lucid, proposalId, address, vote);
-      setResult(result);
+      await VoteProposal(lucid, proposalId, address, vote);
     } else if (proposalType === "Execute") {
-      const result = await ExecuteProposal(lucid, proposalId, address);
-      setResult(result);
+      await ExecuteProposal(lucid, proposalId, address);
     } else if (proposalType === "Reject") {
-      const result = await RejectProposal(lucid, proposalId, address);
-      setResult(result);
+      await RejectProposal(lucid, proposalId, address);
     }
+    setSubmitting(false);
   }
 
   return (
@@ -133,6 +129,7 @@ export function DaoTxButton({
       className={`bg-${color}-700 p-3 rounded-lg hover:bg-${color}-800`}
       onClick={ProposalTx}
       disabled={
+        submitting ||
         !lucid ||
         !address ||
         !proposalId ||
@@ -140,6 +137,7 @@ export function DaoTxButton({
         (proposalType === "Submit" && !action)
       }
     >
+      {submitting && <LoaderCircle className="animate-spin" />}
       {name}
     </Button>
   );
