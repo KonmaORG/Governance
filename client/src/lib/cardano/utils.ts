@@ -69,11 +69,13 @@ export function handleError(error: any) {
 
       toast.error(`${validationError} Traces: ${traces.join(", ")}.`);
       console.error({ [validationError]: traces });
+      return { [validationError]: traces };
     } catch {
       const { reason } = errorData;
 
       toast.error(`${reason}`);
       console.error(reason);
+      return reason;
     }
   } catch {
     function toJSON(error: any) {
@@ -112,5 +114,6 @@ export function handleError(error: any) {
       }`
     );
     console.error(failureCause ?? { error });
+    return failureCause ?? { error };
   }
 }
