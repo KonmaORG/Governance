@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import WalletConnectorButton from "./walletConnector/WalletConnectorButton";
 
 export default function Navbar() {
@@ -26,63 +27,22 @@ export default function Navbar() {
             <nav aria-label="Global" className="hidden md:block">
               <ul className="flex items-center gap-6 text-sm">
                 <li>
-                  <a
+                  <Link
                     className="text-gray-500 transition hover:text-gray-500/75"
-                    href="#"
+                    to="/"
                   >
                     {" "}
-                    About{" "}
-                  </a>
+                    Home{" "}
+                  </Link>
                 </li>
-
                 <li>
-                  <a
+                  <Link
                     className="text-gray-500 transition hover:text-gray-500/75"
-                    href="#"
+                    to="/admin"
                   >
                     {" "}
-                    Careers{" "}
-                  </a>
-                </li>
-
-                <li>
-                  <a
-                    className="text-gray-500 transition hover:text-gray-500/75"
-                    href="#"
-                  >
-                    {" "}
-                    History{" "}
-                  </a>
-                </li>
-
-                <li>
-                  <a
-                    className="text-gray-500 transition hover:text-gray-500/75"
-                    href="#"
-                  >
-                    {" "}
-                    Services{" "}
-                  </a>
-                </li>
-
-                <li>
-                  <a
-                    className="text-gray-500 transition hover:text-gray-500/75"
-                    href="#"
-                  >
-                    {" "}
-                    Projects{" "}
-                  </a>
-                </li>
-
-                <li>
-                  <a
-                    className="text-gray-500 transition hover:text-gray-500/75"
-                    href="#"
-                  >
-                    {" "}
-                    Blog{" "}
-                  </a>
+                    Admin{" "}
+                  </Link>
                 </li>
               </ul>
             </nav>

@@ -4,8 +4,6 @@ import { useState } from "react";
 import { useCardano } from "@/context/CardanoContext";
 import type { Vote } from "@/types/Utils";
 import { DaoTxButton } from "./buttons/DAO";
-import { MintIdentificationButton } from "./buttons/identification";
-import { AttachConfigButton } from "./buttons/configDatum";
 import {
   Card,
   CardContent,
@@ -33,7 +31,7 @@ import {
 } from "lucide-react";
 
 export default function TxButtons() {
-  const { address, lucid } = useCardano();
+  const { address } = useCardano();
   const [proposalId, setProposalId] = useState<string>("");
   const [result, setResult] = useState<string>("");
   const [vote, setVote] = useState<Vote | null>(null);
@@ -61,22 +59,7 @@ export default function TxButtons() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-3">
-            <MintIdentificationButton
-              name="Mint Identification Token"
-              color="teal"
-              lucid={lucid}
-              address={address}
-              setResult={setResult}
-            />
-            <AttachConfigButton
-              name="Attach Configuration Datum"
-              color="teal"
-              lucid={lucid}
-              address={address}
-              setResult={setResult}
-            />
-          </div>
+          Connected Wallet: {address?.slice(0, 10)}......{address?.slice(-15)}
         </CardContent>
       </Card>
 

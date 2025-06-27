@@ -1,25 +1,22 @@
 import { AttachConfigDatum } from "@/lib/cardano/transactions";
 import { Button } from "../ui/button";
+import { useCardano } from "@/context/CardanoContext";
 export function AttachConfigButton({
   name,
   color,
-  lucid,
-  address,
-  setResult,
 }: {
   name: string;
   color: string;
-  lucid: any;
-  address: string | null | undefined;
-  setResult: (result: string) => void;
 }) {
+  const { lucid, address } = useCardano();
+
   async function attachConfigDatum() {
     if (!lucid || !address) {
       console.log("Missing lucid or address");
       return;
     }
     const result = await AttachConfigDatum(lucid);
-    setResult(result);
+    console.log(result);
   }
 
   return (

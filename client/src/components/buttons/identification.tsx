@@ -1,25 +1,21 @@
 import { MintIdentificationToken } from "@/lib/cardano/transactions";
 import { Button } from "../ui/button";
+import { useCardano } from "@/context/CardanoContext";
 export function MintIdentificationButton({
   name,
   color,
-  lucid,
-  address,
-  setResult,
 }: {
   name: string;
   color: string;
-  lucid: any;
-  address: string | null | undefined;
-  setResult: (result: string) => void;
 }) {
+  const { lucid, address } = useCardano();
   async function mintIdentificationToken() {
     if (!lucid || !address) {
       console.log("Missing lucid or address");
       return;
     }
     const result = await MintIdentificationToken(lucid, address);
-    setResult(result);
+    console.log(result);
   }
 
   return (
